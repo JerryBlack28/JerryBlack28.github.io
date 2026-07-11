@@ -6,6 +6,18 @@ export function pluginCustomCopyButton() {
 		name: "Custom Copy Button",
 		hooks: {
 			postprocessRenderedBlock: (context) => {
+				function traverse(node: Element) {
+					if (node.type === "element" && node.tagName === "pre") {
+						processCodeBlock(node);
+						return;
+					}
+					if (node.children) {
+						for (const child of node.children) {
+							if (child.type === "element") traverse(child);
+						}
+					}
+				}
+
 				function processCodeBlock(node: Element) {
 					const copyButton = {
 						type: "element" as const,
@@ -70,7 +82,8 @@ export function pluginCustomCopyButton() {
 					}
 					node.children.push(copyButton);
 				}
-				processCodeBlock(context.renderData.blockAst);
+
+				traverse(context.renderData.blockAst);
 			},
 		},
 	});
