@@ -8,7 +8,7 @@ import type {
 import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
-	title: "企鹅窝",
+	title: "ペンギンの巣",
 	subtitle: "",
 	lang: "zh_CN",
 	themeColor: {
