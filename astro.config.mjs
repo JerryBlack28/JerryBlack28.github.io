@@ -237,7 +237,6 @@ export default defineConfig({
 		plugins: [tailwindcss()],
 		// 开发环境预打包优化：将常用依赖提前编译，避免首次页面加载时 on-demand 编译导致 8s+ 的等待
 		optimizeDeps: {
-			disabled: "build", // skip dep scan during CI build to reduce WASM memory usage
 			include: [
 				"@iconify/svelte",
 				"svelte",
