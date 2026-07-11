@@ -9,7 +9,7 @@ import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
 	title: "ペンギンの巣",
-	subtitle: "",
+	// subtitle: "",
 	lang: "zh_CN",
 	themeColor: {
 		hue: 250,
