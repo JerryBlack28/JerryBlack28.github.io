@@ -4,10 +4,10 @@ import type { SiteConfig } from "../types/config";
 const SITE_LANG = "en"; // 语言代码，例如：'en', 'zh_CN', 'ja' 等。
 
 export const siteConfig: SiteConfig = {
-	title: "Mizuki",
-	subtitle: "One demo website",
-	siteURL: "https://mizuki.mysqil.com/", // 请替换为你的站点URL，以斜杠结尾
-	siteStartDate: "2025-01-01", // 站点开始运行日期，用于站点统计组件计算运行天数
+	title: "企鹅窝",
+	subtitle: "",
+	siteURL: "https://JerryBlack28.github.io/", // 请替换为你的站点URL，以斜杠结尾
+	siteStartDate: "2026-07-12", // 站点开始运行日期，用于站点统计组件计算运行天数
 
 	lang: SITE_LANG,
 
@@ -18,15 +18,15 @@ export const siteConfig: SiteConfig = {
 
 	// 特色页面开关配置（关闭未使用的页面有助于提升 SEO，关闭后请记得在 navbarConfig 中移除对应链接）
 	featurePages: {
-		anime: true, // 番剧页面开关
-		diary: true, // 日记页面开关
-		friends: true, // 友链页面开关
-		projects: true, // 项目页面开关
-		skills: true, // 技能页面开关
-		timeline: true, // 时间线页面开关
-		albums: true, // 相册页面开关
-		devices: true, // 设备页面开关
-		aiTools: true, // AI 工具页面开关
+		anime: true,
+		diary: false,
+		friends: false,
+		projects: true,
+		skills: true,
+		timeline: true,
+		albums: false,
+		devices: false,
+		aiTools: true,
 	},
 
 	// 顶栏标题配置
