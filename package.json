@@ -89,14 +89,7 @@
     "@types/sanitize-html": "^2.16.1",
     "glob": "^13.0.6",
     "postcss-import": "^16.1.1",
-    "postcss-nesting": "^14.0.0",
-    "rolldown": "^1.1.5"
+    "postcss-nesting": "^14.0.0"
   },
-  "packageManager": "pnpm@11.5.3",
-  "pnpm": {
-    "overrides": {
-      "rolldown": "latest",
-      "vite": "latest"
-    }
-  }
+  "packageManager": "pnpm@11.5.3"
 }
