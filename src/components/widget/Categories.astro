@@ -5,12 +5,14 @@ import { getCategoryList } from "../../utils/content-utils";
 import ButtonLink from "../control/ButtonLink.astro";
 import WidgetLayout from "./WidgetLayout.astro";
 
-const categories = await getCategoryList();
+const categoriesZh = await getCategoryList("zh");
+const categoriesEn = await getCategoryList("en");
 
 const COLLAPSED_HEIGHT = "7.5rem";
 const COLLAPSE_THRESHOLD = 5;
 
-const isCollapsed = categories.length >= COLLAPSE_THRESHOLD;
+const isCollapsed =
+	Math.max(categoriesZh.length, categoriesEn.length) >= COLLAPSE_THRESHOLD;
 
 interface Props {
 	class?: string;
@@ -20,16 +22,29 @@ const className = Astro.props.class;
 const style = Astro.props.style;
 ---
 
-<WidgetLayout name={i18n(I18nKey.categories)} id="categories" isCollapsed={isCollapsed} collapsedHeight={COLLAPSED_HEIGHT}
+<WidgetLayout name={i18n(I18nKey.categories)} nameEn="Categories" id="categories" isCollapsed={isCollapsed} collapsedHeight={COLLAPSED_HEIGHT}
                 class={className} style={style}
 >
-    {categories.map((c) =>
-        <ButtonLink
-            url={c.url}
-            badge={String(c.count)}
-            label={`View all posts in the ${c.name.trim()} category`}
-        >
-            {c.name.trim()}
-        </ButtonLink>
-    )}
+    <div data-lang="zh">
+        {categoriesZh.map((c) =>
+            <ButtonLink
+                url={c.url}
+                badge={String(c.count)}
+                label={`View all posts in the ${c.name.trim()} category`}
+            >
+                {c.name.trim()}
+            </ButtonLink>
+        )}
+    </div>
+    <div data-lang="en">
+        {categoriesEn.map((c) =>
+            <ButtonLink
+                url={c.url}
+                badge={String(c.count)}
+                label={`View all posts in the ${c.name.trim()} category`}
+            >
+                {c.name.trim()}
+            </ButtonLink>
+        )}
+    </div>
 </WidgetLayout>

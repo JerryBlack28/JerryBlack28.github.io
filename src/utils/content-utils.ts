@@ -66,18 +66,24 @@ export type Tag = {
 	count: number;
 };
 
-export async function getTagList(): Promise<Tag[]> {
+export async function getTagList(lang?: string): Promise<Tag[]> {
 	const allBlogPosts = await getCollection<"posts">("posts", ({ data }) => {
 		return import.meta.env.PROD ? data.draft !== true : true;
 	});
 
 	const countMap: { [key: string]: number } = {};
-	allBlogPosts.forEach((post: { data: { tags: string[] } }) => {
-		post.data.tags.forEach((tag: string) => {
-			if (!countMap[tag]) countMap[tag] = 0;
-			countMap[tag]++;
-		});
-	});
+	allBlogPosts.forEach(
+		(post: { data: { tags: string[]; lang?: string } }) => {
+			if (lang !== undefined) {
+				const l = post.data.lang || "zh";
+				if (l !== lang) return;
+			}
+			post.data.tags.forEach((tag: string) => {
+				if (!countMap[tag]) countMap[tag] = 0;
+				countMap[tag]++;
+			});
+		},
+	);
 
 	// sort tags
 	const keys: string[] = Object.keys(countMap).sort((a, b) => {
@@ -93,25 +99,32 @@ export type Category = {
 	url: string;
 };
 
-export async function getCategoryList(): Promise<Category[]> {
+export async function getCategoryList(lang?: string): Promise<Category[]> {
 	const allBlogPosts = await getCollection<"posts">("posts", ({ data }) => {
 		return import.meta.env.PROD ? data.draft !== true : true;
 	});
 	const count: { [key: string]: number } = {};
-	allBlogPosts.forEach((post: { data: { category: string | null } }) => {
-		if (!post.data.category) {
-			const ucKey = i18n(I18nKey.uncategorized);
-			count[ucKey] = count[ucKey] ? count[ucKey] + 1 : 1;
-			return;
-		}
+	allBlogPosts.forEach(
+		(post: { data: { category: string | null; lang?: string } }) => {
+			if (lang !== undefined) {
+				const l = post.data.lang || "zh";
+				if (l !== lang) return;
+			}
+			if (!post.data.category) {
+				const ucKey =
+					lang === "en" ? "Uncategorized" : i18n(I18nKey.uncategorized);
+				count[ucKey] = count[ucKey] ? count[ucKey] + 1 : 1;
+				return;
+			}
 
-		const categoryName =
-			typeof post.data.category === "string"
-				? post.data.category.trim()
-				: String(post.data.category).trim();
+			const categoryName =
+				typeof post.data.category === "string"
+					? post.data.category.trim()
+					: String(post.data.category).trim();
 
-		count[categoryName] = count[categoryName] ? count[categoryName] + 1 : 1;
-	});
+			count[categoryName] = count[categoryName] ? count[categoryName] + 1 : 1;
+		},
+	);
 
 	const lst = Object.keys(count).sort((a, b) => {
 		return a.toLowerCase().localeCompare(b.toLowerCase());
