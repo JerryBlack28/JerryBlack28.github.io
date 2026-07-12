@@ -99,6 +99,16 @@ export const timelineData: TimelineItem[] = [
 		location: "杭州",
 	},
 	{
+		id: "ccpc-guilin-2022",
+		type: "achievement",
+		title: "2022 CCPC 桂林站 铜奖",
+		organization: "CCPC 中国大学生程序设计竞赛",
+		description: "",
+		startDate: "2022-10-29",
+		endDate: "2022-10-30",
+		location: "桂林",
+	},
+	{
 		id: "ccpc-qinhuangdao-2023",
 		type: "achievement",
 		title: "2023 CCPC 秦皇岛站 银奖",
