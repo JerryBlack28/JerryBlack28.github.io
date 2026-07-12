@@ -41,10 +41,12 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.Home,
 		{
 			name: "项目",
+			nameEn: "Projects",
 			url: "/projects/",
 		},
 		{
 			name: "经历",
+			nameEn: "Timeline",
 			url: "/timeline/",
 		},
 		LinkPreset.Archive,

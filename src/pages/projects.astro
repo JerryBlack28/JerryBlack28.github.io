@@ -15,11 +15,11 @@ const statusClass: Record<Project["status"], string> = {
 };
 
 const categories = [
-	{ id: "all", label: "All", icon: "grid" },
-	{ id: "web", label: "Web Applications", icon: "web" },
-	{ id: "mobile", label: "Mobile Applications", icon: "mobile" },
-	{ id: "desktop", label: "Desktop Applications", icon: "desktop" },
-	{ id: "other", label: "Other", icon: "other" },
+	{ id: "all", label: "全部", labelEn: "All" },
+	{ id: "web", label: "Web 应用", labelEn: "Web Applications" },
+	{ id: "mobile", label: "移动应用", labelEn: "Mobile Applications" },
+	{ id: "desktop", label: "桌面应用", labelEn: "Desktop Applications" },
+	{ id: "other", label: "其他", labelEn: "Other" },
 ];
 
 const countByCategory = (id: string) =>
@@ -36,14 +36,16 @@ const visibleCategories = categories.filter(
 	<div class="card-base z-10 px-9 py-6 relative w-full">
 		<div class="flex items-center gap-3 mb-1">
 			<div class="w-1 h-9 bg-[var(--primary)] rounded-full"></div>
-			<h1 class="text-3xl font-bold text-black/90 dark:text-white/90">Projects</h1>
+			<h1 class="text-3xl font-bold text-black/90 dark:text-white/90">
+				<span data-lang="zh">项目</span><span data-lang="en">Projects</span>
+			</h1>
 		</div>
-		<p class="text-neutral-500 dark:text-neutral-400 ml-4 mb-8">My development project portfolio</p>
+		<div class="mb-8"></div>
 
 		{projectsData.length === 0 ? (
 			<div class="text-center py-24 text-neutral-400 dark:text-neutral-500">
 				<div class="text-5xl mb-4">🚧</div>
-				<p class="text-lg">项目整理中，敬请期待</p>
+				<p class="text-lg"><span data-lang="zh">项目整理中，敬请期待</span><span data-lang="en">Coming soon...</span></p>
 			</div>
 		) : (
 			<>
@@ -58,7 +60,8 @@ const visibleCategories = categories.filter(
 									: "bg-[var(--btn-plain-bg)] text-[var(--btn-content)] hover:bg-[var(--btn-plain-bg-hover)]",
 							]}
 						>
-							<span>{cat.label}</span>
+							<span data-lang="zh">{cat.label}</span>
+							<span data-lang="en">{cat.labelEn}</span>
 							<span class="text-xs opacity-70">({countByCategory(cat.id)})</span>
 						</button>
 					))}

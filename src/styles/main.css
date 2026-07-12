@@ -150,3 +150,10 @@
     }
   }
 }
+/* Bilingual support */
+html:not([lang="en"]) [data-lang="en"] {
+    display: none !important;
+}
+html[lang="en"] [data-lang="zh"] {
+    display: none !important;
+}
