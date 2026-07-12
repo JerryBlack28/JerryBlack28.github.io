@@ -19,6 +19,15 @@ export interface TimelineItem {
 
 export const timelineData: TimelineItem[] = [
 	{
+		id: "ecnu-master",
+		type: "education",
+		title: "华东师范大学",
+		organization: "大数据技术与工程 · 硕士",
+		description: "",
+		startDate: "2025-09-01",
+		location: "上海",
+	},
+	{
 		id: "icpc-shanghai-2024",
 		type: "achievement",
 		title: "2024 ICPC 上海站 银奖",
@@ -37,6 +46,16 @@ export const timelineData: TimelineItem[] = [
 		startDate: "2024-11-02",
 		endDate: "2024-11-03",
 		location: "南京",
+	},
+	{
+		id: "icpc-asia-final-2023",
+		type: "achievement",
+		title: "2023 ICPC 亚洲区决赛 铜奖",
+		organization: "ICPC 国际大学生程序设计竞赛",
+		description: "",
+		startDate: "2024-01-13",
+		endDate: "2024-01-15",
+		location: "上海",
 	},
 	{
 		id: "icpc-nanjing-2023",
@@ -60,16 +79,6 @@ export const timelineData: TimelineItem[] = [
 		featured: true,
 	},
 	{
-		id: "icpc-asia-final-2023",
-		type: "achievement",
-		title: "2023 ICPC 亚洲区决赛 铜奖",
-		organization: "ICPC 国际大学生程序设计竞赛",
-		description: "",
-		startDate: "2024-01-13",
-		endDate: "2024-01-15",
-		location: "上海",
-	},
-	{
 		id: "icpc-asia-final-2022",
 		type: "achievement",
 		title: "2022 ICPC 亚洲区决赛 铜奖",
@@ -88,5 +97,21 @@ export const timelineData: TimelineItem[] = [
 		startDate: "2022-12-03",
 		endDate: "2022-12-04",
 		location: "杭州",
+	},
+	{
+		id: "zjnu-bachelor",
+		type: "education",
+		title: "浙江师范大学",
+		organization: "数学与应用数学 · 学士",
+		description: "",
+		startDate: "2021-09-01",
+		endDate: "2025-06-30",
+		location: "金华",
+		achievements: [
+			"排名 3rd/44",
+			"省政府奖学金 × 3",
+			"校一等奖学金 × 3",
+			"研究与创新奖学金 × 3",
+		],
 	},
 ];

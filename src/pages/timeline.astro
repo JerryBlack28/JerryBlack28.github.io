@@ -1,6 +1,10 @@
 ---
 import MainGridLayout from "../layouts/MainGridLayout.astro";
-import { timelineData, type TimelineItem } from "../data/timeline";
+import { timelineData as rawTimelineData, type TimelineItem } from "../data/timeline";
+
+const timelineData = [...rawTimelineData].sort((a, b) =>
+	b.startDate.localeCompare(a.startDate),
+);
 
 const typeLabel: Record<TimelineItem["type"], string> = {
 	education: "Education",
