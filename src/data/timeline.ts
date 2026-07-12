@@ -116,7 +116,7 @@ export const timelineData: TimelineItem[] = [
 		description: "",
 		startDate: "2023-04-14",
 		endDate: "2023-04-15",
-		location: "浙江",
+		location: "杭州",
 		featured: true,
 	},
 	{
@@ -127,7 +127,15 @@ export const timelineData: TimelineItem[] = [
 		description: "",
 		startDate: "2022-04-15",
 		endDate: "2022-04-16",
-		location: "浙江",
+		location: "杭州",
+	},
+	{
+		id: "cumcm-2023",
+		type: "achievement",
+		title: "2023 全国大学生数学建模竞赛 国家级二等奖",
+		organization: "全国大学生数学建模竞赛",
+		description: "",
+		startDate: "2023-11-04",
 	},
 	{
 		id: "zjnu-bachelor",
