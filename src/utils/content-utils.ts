@@ -17,16 +17,31 @@ async function getRawSortedPosts() {
 	return sorted;
 }
 
+function postLang(entry: CollectionEntry<"posts">): string {
+	return entry.data.lang || "zh";
+}
+
 export async function getSortedPosts() {
 	const sorted = await getRawSortedPosts();
 
-	for (let i = 1; i < sorted.length; i++) {
-		sorted[i].data.nextSlug = sorted[i - 1].slug;
-		sorted[i].data.nextTitle = sorted[i - 1].data.title;
+	// Build prev/next chains scoped to each language so navigation stays
+	// within the current locale.
+	const byLang: Record<string, CollectionEntry<"posts">[]> = {};
+	for (const post of sorted) {
+		const l = postLang(post);
+		if (!byLang[l]) byLang[l] = [];
+		byLang[l].push(post);
 	}
-	for (let i = 0; i < sorted.length - 1; i++) {
-		sorted[i].data.prevSlug = sorted[i + 1].slug;
-		sorted[i].data.prevTitle = sorted[i + 1].data.title;
+
+	for (const bucket of Object.values(byLang)) {
+		for (let i = 1; i < bucket.length; i++) {
+			bucket[i].data.nextSlug = bucket[i - 1].slug;
+			bucket[i].data.nextTitle = bucket[i - 1].data.title;
+		}
+		for (let i = 0; i < bucket.length - 1; i++) {
+			bucket[i].data.prevSlug = bucket[i + 1].slug;
+			bucket[i].data.prevTitle = bucket[i + 1].data.title;
+		}
 	}
 
 	return sorted;

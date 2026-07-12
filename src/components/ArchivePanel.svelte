@@ -21,6 +21,7 @@ interface Post {
 		tags: string[];
 		category?: string;
 		published: Date;
+		lang?: string;
 	};
 }
 
@@ -42,7 +43,11 @@ function formatTag(tagList: string[]) {
 }
 
 onMount(async () => {
-	let filteredPosts: Post[] = sortedPosts;
+	const currentLang =
+		document.documentElement.getAttribute("lang") === "en" ? "en" : "zh";
+	let filteredPosts: Post[] = sortedPosts.filter(
+		(post) => (post.data.lang || "zh") === currentLang,
+	);
 
 	if (tags.length > 0) {
 		filteredPosts = filteredPosts.filter(
