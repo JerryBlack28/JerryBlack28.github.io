@@ -1,19 +1,174 @@
 ---
-
-import { getEntry, render } from "astro:content";
-import Markdown from "@components/misc/Markdown.astro";
 import MainGridLayout from "../layouts/MainGridLayout.astro";
+import { timelineData, type TimelineItem } from "../data/timeline";
 
-const page = await getEntry("spec", "timeline");
-const { Content } = await render(page);
+const typeLabel: Record<TimelineItem["type"], string> = {
+	education: "Education",
+	work: "Work Experience",
+	project: "Project Experience",
+	achievement: "Achievements",
+};
+
+const typeIcon: Record<TimelineItem["type"], string> = {
+	education: "🎓",
+	work: "💼",
+	project: "</>",
+	achievement: "🏆",
+};
+
+const typeColor: Record<TimelineItem["type"], string> = {
+	education: "bg-emerald-500",
+	work: "bg-blue-500",
+	project: "bg-purple-500",
+	achievement: "bg-amber-500",
+};
+
+const typeBadge: Record<TimelineItem["type"], string> = {
+	education: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+	work: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+	project: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+	achievement: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+};
+
+const types: TimelineItem["type"][] = ["education", "work", "project", "achievement"];
+const countByType = (t: string) =>
+	t === "all"
+		? timelineData.length
+		: timelineData.filter((i) => i.type === t).length;
+
+const filters = [
+	{ id: "all", label: "All" },
+	...types.filter((t) => countByType(t) > 0).map((t) => ({ id: t, label: typeLabel[t] })),
+];
 ---
-<MainGridLayout title="经历" description="经历">
-    <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
-        <div class="card-base z-10 px-9 py-6 relative w-full">
-            <div class="font-bold text-3xl mb-6">经历</div>
-            <Markdown class="mt-2">
-                <Content />
-            </Markdown>
-        </div>
-    </div>
+
+<MainGridLayout title="经历" description="My growth journey and important milestones">
+	<div class="card-base z-10 px-9 py-6 relative w-full">
+		<div class="flex items-center gap-3 mb-1">
+			<div class="w-1 h-9 bg-[var(--primary)] rounded-full"></div>
+			<h1 class="text-3xl font-bold text-black/90 dark:text-white/90">Timeline</h1>
+		</div>
+		<p class="text-neutral-500 dark:text-neutral-400 ml-4 mb-8">My growth journey and important milestones</p>
+
+		{timelineData.length === 0 ? (
+			<div class="text-center py-24 text-neutral-400 dark:text-neutral-500">
+				<div class="text-5xl mb-4">📖</div>
+				<p class="text-lg">经历整理中，敬请期待</p>
+			</div>
+		) : (
+			<>
+				<div class="flex flex-wrap gap-3 mb-10" id="filter-bar">
+					{filters.map((f, i) => (
+						<button
+							data-filter={f.id}
+							class:list={[
+								"filter-btn flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all",
+								i === 0
+									? "bg-[var(--primary)] text-white shadow-md"
+									: "bg-[var(--btn-plain-bg)] text-[var(--btn-content)] hover:bg-[var(--btn-plain-bg-hover)]",
+							]}
+						>
+							<span>{f.label}</span>
+							<span class="text-xs opacity-70">({countByType(f.id)})</span>
+						</button>
+					))}
+				</div>
+
+				<div class="relative pl-10" id="timeline-list">
+					<div class="absolute left-3 top-2 bottom-2 w-px bg-neutral-200 dark:bg-neutral-700"></div>
+					{timelineData.map((item) => (
+						<div class="timeline-item relative mb-8" data-type={item.type}>
+							<div class:list={["absolute -left-9 top-6 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs shadow-md", typeColor[item.type]]}>
+								{typeIcon[item.type]}
+							</div>
+							<div class="rounded-2xl border border-neutral-200/60 dark:border-neutral-700/60 p-6 bg-[var(--card-bg)] hover:shadow-lg transition-shadow">
+								<div class="flex items-start justify-between gap-3 mb-3 flex-wrap">
+									<div class="flex-1 min-w-0">
+										<div class="flex items-center gap-2 flex-wrap">
+											<h3 class="text-lg font-bold text-black/90 dark:text-white/90">{item.title}</h3>
+											{item.featured && <span class="text-[var(--primary)]">★</span>}
+										</div>
+										{item.organization && (
+											<p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{item.organization}</p>
+										)}
+									</div>
+									<span class:list={["text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap", typeBadge[item.type]]}>
+										{typeLabel[item.type]}
+									</span>
+								</div>
+
+								<p class="text-sm text-neutral-600 dark:text-neutral-300 mb-4 leading-relaxed">{item.description}</p>
+
+								{item.skills && item.skills.length > 0 && (
+									<div class="flex flex-wrap gap-1.5 mb-4">
+										{item.skills.map((s) => (
+											<span class="text-xs px-2.5 py-1 bg-[oklch(0.95_0.05_var(--hue))] dark:bg-[oklch(0.28_0.05_var(--hue))] text-[oklch(0.45_0.15_var(--hue))] dark:text-[oklch(0.75_0.10_var(--hue))] rounded-full">
+												{s}
+											</span>
+										))}
+									</div>
+								)}
+
+								{item.achievements && item.achievements.length > 0 && (
+									<div class="mb-4">
+										<div class="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-2">Achievements</div>
+										<ul class="space-y-1.5">
+											{item.achievements.map((a) => (
+												<li class="flex items-start gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+													<span class="text-emerald-500 mt-0.5">✓</span>
+													<span>{a}</span>
+												</li>
+											))}
+										</ul>
+									</div>
+								)}
+
+								<div class="flex flex-wrap items-center gap-5 text-xs text-neutral-500 dark:text-neutral-400 pt-4 border-t border-neutral-200/60 dark:border-neutral-700/60">
+									<span class="flex items-center gap-1.5">
+										📅 {item.startDate}{item.endDate ? ` - ${item.endDate}` : " - Present"}
+									</span>
+									{item.duration && <span class="flex items-center gap-1.5">⏱ {item.duration}</span>}
+									{item.location && <span class="flex items-center gap-1.5">📍 {item.location}</span>}
+								</div>
+
+								{(item.githubUrl || item.liveUrl) && (
+									<div class="flex gap-2 mt-4">
+										{item.githubUrl && (
+											<a href={item.githubUrl} target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[oklch(0.95_0.05_var(--hue))] dark:bg-[oklch(0.28_0.05_var(--hue))] text-[oklch(0.45_0.15_var(--hue))] dark:text-[oklch(0.75_0.10_var(--hue))] text-xs hover:opacity-80">
+												GitHub Repository
+											</a>
+										)}
+										{item.liveUrl && (
+											<a href={item.liveUrl} target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[oklch(0.95_0.05_var(--hue))] dark:bg-[oklch(0.28_0.05_var(--hue))] text-[oklch(0.45_0.15_var(--hue))] dark:text-[oklch(0.75_0.10_var(--hue))] text-xs hover:opacity-80">
+												Live Demo
+											</a>
+										)}
+									</div>
+								)}
+							</div>
+						</div>
+					))}
+				</div>
+			</>
+		)}
+	</div>
 </MainGridLayout>
+
+<script>
+	const btns = document.querySelectorAll<HTMLButtonElement>(".filter-btn");
+	const items = document.querySelectorAll<HTMLElement>(".timeline-item");
+	btns.forEach((btn) => {
+		btn.addEventListener("click", () => {
+			const f = btn.dataset.filter;
+			btns.forEach((b) => {
+				b.classList.remove("bg-[var(--primary)]", "text-white", "shadow-md");
+				b.classList.add("bg-[var(--btn-plain-bg)]", "text-[var(--btn-content)]");
+			});
+			btn.classList.add("bg-[var(--primary)]", "text-white", "shadow-md");
+			btn.classList.remove("bg-[var(--btn-plain-bg)]", "text-[var(--btn-content)]");
+			items.forEach((it) => {
+				(it as HTMLElement).style.display = f === "all" || it.dataset.type === f ? "" : "none";
+			});
+		});
+	});
+</script>
