@@ -122,15 +122,7 @@ function maybeRedirectPost(targetLang) {
     const target = targetLang === "en" ? pair.en : pair.zh;
     if (!target || target === slug) return false;
     const targetUrl = base + "/" + target + "/";
-    try {
-        if (window.swup) {
-            window.swup.navigate(targetUrl);
-        } else {
-            window.location.assign(targetUrl);
-        }
-    } catch(e) {
-        window.location.assign(targetUrl);
-    }
+    window.location.href = targetUrl;
     return true;
 }
 
