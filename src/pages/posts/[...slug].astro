@@ -26,15 +26,15 @@ export async function getStaticPaths() {
 		}
 	}
 
-	return blogEntries.map((entry) => ({
-		params: { slug: entry.slug },
-		props: {
-			entry,
-			// For ZH posts: attach the EN counterpart if one exists
-			enEntry:
-				entry.data.lang !== "en" ? (enByBase[entry.slug] ?? null) : null,
-		},
-	}));
+	return blogEntries
+		.filter((entry) => entry.data.lang !== "en")
+		.map((entry) => ({
+			params: { slug: entry.slug },
+			props: {
+				entry,
+				enEntry: enByBase[entry.slug] ?? null,
+			},
+		}));
 }
 
 const { entry, enEntry } = Astro.props;
