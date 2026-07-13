@@ -5,6 +5,7 @@ export interface Project {
 	id: string;
 	title: string;
 	description: string;
+	descriptionEn?: string;
 	image?: string;
 	category: ProjectCategory;
 	status: ProjectStatus;
@@ -18,6 +19,7 @@ export const projectsData: Project[] = [
 		id: "acmlab",
 		title: "ACMLAB",
 		description: "ACM 竞赛算法模板与题解库。",
+		descriptionEn: "Algorithm templates and solutions for competitive programming.",
 		category: "other",
 		status: "in-progress",
 		techStack: ["C++", "Algorithms"],

@@ -2,10 +2,10 @@
 import MainGridLayout from "../layouts/MainGridLayout.astro";
 import { projectsData, type Project } from "../data/projects";
 
-const statusLabel: Record<Project["status"], string> = {
-	completed: "Completed",
-	"in-progress": "In Progress",
-	planned: "Planned",
+const statusLabel: Record<Project["status"], { zh: string; en: string }> = {
+	completed: { zh: "已完成", en: "Completed" },
+	"in-progress": { zh: "进行中", en: "In Progress" },
+	planned: { zh: "计划中", en: "Planned" },
 };
 
 const statusClass: Record<Project["status"], string> = {
@@ -82,10 +82,10 @@ const visibleCategories = categories.filter(
 								<div class="flex items-start justify-between gap-3 mb-2">
 									<h3 class="text-lg font-bold text-black/90 dark:text-white/90">{p.title}</h3>
 									<span class:list={["text-xs px-3 py-1 rounded-full font-medium whitespace-nowrap", statusClass[p.status]]}>
-										{statusLabel[p.status]}
+										<span data-lang="zh">{statusLabel[p.status].zh}</span><span data-lang="en">{statusLabel[p.status].en}</span>
 									</span>
 								</div>
-								<p class="text-sm text-neutral-500 dark:text-neutral-400 mb-4 line-clamp-2">{p.description}</p>
+								<p class="text-sm text-neutral-500 dark:text-neutral-400 mb-4 line-clamp-2">{p.descriptionEn ? (<><span data-lang="zh">{p.description}</span><span data-lang="en">{p.descriptionEn}</span></>) : p.description}</p>
 								<div class="flex flex-wrap gap-1.5 mb-4">
 									{p.techStack.map((tech) => (
 										<span class="text-xs px-2.5 py-1 bg-[oklch(0.95_0.05_var(--hue))] dark:bg-[oklch(0.28_0.05_var(--hue))] text-[oklch(0.45_0.15_var(--hue))] dark:text-[oklch(0.75_0.10_var(--hue))] rounded-full">
