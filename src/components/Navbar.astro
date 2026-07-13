@@ -112,18 +112,21 @@ initLang();
 async function maybeRedirectPost(targetLang) {
     const path = window.location.pathname;
     const base = postsBase.replace(/\/$/, "");
-    if (!path.startsWith(base + "/")) return false;
+    console.log("[lang] path:", path, "base:", base, "targetLang:", targetLang);
+    if (!path.startsWith(base + "/")) { console.log("[lang] not a post path"); return false; }
     const slug = path.slice(base.length + 1).replace(/\/$/, "");
     if (!slug) return false;
     const isEn = slug.endsWith(".en");
-    if (targetLang === "en" && isEn) return false;
-    if (targetLang !== "en" && !isEn) return false;
+    if (targetLang === "en" && isEn) { console.log("[lang] already en"); return false; }
+    if (targetLang !== "en" && !isEn) { console.log("[lang] already zh"); return false; }
     const targetSlug = targetLang === "en" ? slug + ".en" : slug.slice(0, -3);
     const targetUrl = base + "/" + targetSlug + "/";
+    console.log("[lang] fetching:", targetUrl);
     try {
         const res = await fetch(targetUrl, { method: "HEAD" });
+        console.log("[lang] HEAD status:", res.status, res.ok);
         if (res.ok) { window.location.href = targetUrl; return true; }
-    } catch(e) {}
+    } catch(e) { console.log("[lang] fetch error:", e); }
     return false;
 }
 
