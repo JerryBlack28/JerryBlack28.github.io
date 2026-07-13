@@ -1,5 +1,5 @@
 ---
-title: Interval (2020 Nowcoder Multi-School #5)
+title: "Interval (2020 Nowcoder Multi-School #5)"
 published: 2023-05-04
 description: Persistent segment tree + segment tree for range AND set-size queries with forced online mode.
 tags: [Algorithms, Persistent Segment Tree, Segment Tree, Strings]

@@ -107,34 +107,35 @@ function initLang() {
 initLang();
 
 // When switching language on a post detail page, redirect to the
-// corresponding translation if one exists.
-function maybeRedirectPost(targetLang) {
+// corresponding translation if one exists. Derives the target URL from
+// the slug pattern (.en suffix) and verifies with a HEAD request.
+async function maybeRedirectPost(targetLang) {
     const path = window.location.pathname;
-    // Match trailing-slash-optional /posts/<slug>/ paths.
     const base = postsBase.replace(/\/$/, "");
     if (!path.startsWith(base + "/")) return false;
-    let slug = path.slice(base.length + 1).replace(/\/$/, "");
+    const slug = path.slice(base.length + 1).replace(/\/$/, "");
     if (!slug) return false;
     const isEn = slug.endsWith(".en");
-    const baseSlug = isEn ? slug.slice(0, -3) : slug;
-    const pair = translationMap[baseSlug];
-    if (!pair) return false;
-    const target = targetLang === "en" ? pair.en : pair.zh;
-    if (!target || target === slug) return false;
-    const targetUrl = base + "/" + target + "/";
-    window.location.href = targetUrl;
-    return true;
+    if (targetLang === "en" && isEn) return false;
+    if (targetLang !== "en" && !isEn) return false;
+    const targetSlug = targetLang === "en" ? slug + ".en" : slug.slice(0, -3);
+    const targetUrl = base + "/" + targetSlug + "/";
+    try {
+        const res = await fetch(targetUrl, { method: "HEAD" });
+        if (res.ok) { window.location.href = targetUrl; return true; }
+    } catch(e) {}
+    return false;
 }
 
 function loadButtonScript() {
     const langBtn = document.getElementById('lang-switch');
     if (langBtn) {
-        langBtn.onclick = () => {
+        langBtn.onclick = async () => {
             const cur = document.documentElement.getAttribute('lang');
             const next = cur === 'en' ? 'zh_CN' : 'en';
             const nextShort = next === 'en' ? 'en' : 'zh';
             applyLang(next);
-            maybeRedirectPost(nextShort);
+            await maybeRedirectPost(nextShort);
         };
     }
 
