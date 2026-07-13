@@ -29,7 +29,7 @@ const allPosts = await getCollection("posts", ({ data }) =>
 const translationMap: Record<string, { zh?: string; en?: string }> = {};
 for (const post of allPosts) {
 	const isEn = post.data.lang === "en";
-	const base = isEn ? post.slug.replace(/\.en$/, "") : post.slug;
+	const base = isEn ? post.slug.replace(/-en$/, "") : post.slug;
 	if (!translationMap[base]) translationMap[base] = {};
 	translationMap[base][isEn ? "en" : "zh"] = post.slug;
 }
@@ -107,38 +107,34 @@ function initLang() {
 initLang();
 
 // When switching language on a post detail page, redirect to the
-// corresponding translation if one exists. Derives the target URL from
-// the slug pattern (.en suffix) and verifies with a HEAD request.
-async function maybeRedirectPost(targetLang) {
+// corresponding translation if one exists.
+function maybeRedirectPost(targetLang) {
     const path = window.location.pathname;
     const base = postsBase.replace(/\/$/, "");
-    console.log("[lang] path:", path, "base:", base, "targetLang:", targetLang);
-    if (!path.startsWith(base + "/")) { console.log("[lang] not a post path"); return false; }
+    if (!path.startsWith(base + "/")) return false;
     const slug = path.slice(base.length + 1).replace(/\/$/, "");
     if (!slug) return false;
-    const isEn = slug.endsWith(".en");
-    if (targetLang === "en" && isEn) { console.log("[lang] already en"); return false; }
-    if (targetLang !== "en" && !isEn) { console.log("[lang] already zh"); return false; }
-    const targetSlug = targetLang === "en" ? slug + ".en" : slug.slice(0, -3);
-    const targetUrl = base + "/" + targetSlug + "/";
-    console.log("[lang] fetching:", targetUrl);
-    try {
-        const res = await fetch(targetUrl, { method: "HEAD" });
-        console.log("[lang] HEAD status:", res.status, res.ok);
-        if (res.ok) { window.location.href = targetUrl; return true; }
-    } catch(e) { console.log("[lang] fetch error:", e); }
-    return false;
+    // Find this slug in the translation map (search by value in both zh/en)
+    let pair = null;
+    for (const val of Object.values(translationMap)) {
+        if (val.zh === slug || val.en === slug) { pair = val; break; }
+    }
+    if (!pair) return false;
+    const target = targetLang === "en" ? pair.en : pair.zh;
+    if (!target || target === slug) return false;
+    window.location.href = base + "/" + target + "/";
+    return true;
 }
 
 function loadButtonScript() {
     const langBtn = document.getElementById('lang-switch');
     if (langBtn) {
-        langBtn.onclick = async () => {
+        langBtn.onclick = () => {
             const cur = document.documentElement.getAttribute('lang');
             const next = cur === 'en' ? 'zh_CN' : 'en';
             const nextShort = next === 'en' ? 'en' : 'zh';
             applyLang(next);
-            await maybeRedirectPost(nextShort);
+            maybeRedirectPost(nextShort);
         };
     }
 
