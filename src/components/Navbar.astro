@@ -1,5 +1,4 @@
 ---
-import { getCollection } from "astro:content";
 import { Icon } from "astro-icon/components";
 import { navBarConfig, siteConfig } from "../config";
 import { LinkPresets } from "../constants/link-presets";
@@ -20,19 +19,6 @@ let links: NavBarLink[] = navBarConfig.links.map(
 		return item;
 	},
 );
-
-// Build a base-slug -> { zh, en } map so the language switcher can
-// redirect between translated variants of the same post.
-const allPosts = await getCollection("posts", ({ data }) =>
-	import.meta.env.PROD ? data.draft !== true : true,
-);
-const translationMap: Record<string, { zh?: string; en?: string }> = {};
-for (const post of allPosts) {
-	const isEn = post.data.lang === "en";
-	const base = isEn ? post.slug.replace(/-en$/, "") : post.slug;
-	if (!translationMap[base]) translationMap[base] = {};
-	translationMap[base][isEn ? "en" : "zh"] = post.slug;
-}
 ---
 <div id="navbar" class="z-50 onload-animation">
     <div class="absolute h-8 left-0 right-0 -top-8 bg-[var(--card-bg)] transition"></div> <!-- used for onload animation -->
@@ -84,7 +70,7 @@ for (const post of allPosts) {
     </div>
 </div>
 
-<script define:vars={{ translationMap, postsBase: url("/posts/") }}>
+<script>
 function switchTheme() {
     if (localStorage.theme === 'dark') {
         document.documentElement.classList.remove('dark');
@@ -106,43 +92,18 @@ function initLang() {
 }
 initLang();
 
-// When switching language on a post detail page, redirect to the
-// corresponding translation if one exists.
-function maybeRedirectPost(targetLang) {
-    const path = window.location.pathname;
-    const base = postsBase.replace(/\/$/, "");
-    if (!path.startsWith(base + "/")) return false;
-    const slug = path.slice(base.length + 1).replace(/\/$/, "");
-    if (!slug) return false;
-    // Find this slug in the translation map (search by value in both zh/en)
-    let pair = null;
-    for (const val of Object.values(translationMap)) {
-        if (val.zh === slug || val.en === slug) { pair = val; break; }
-    }
-    if (!pair) return false;
-    const target = targetLang === "en" ? pair.en : pair.zh;
-    if (!target || target === slug) return false;
-    window.location.href = base + "/" + target + "/";
-    return true;
-}
-
 function loadButtonScript() {
     const langBtn = document.getElementById('lang-switch');
     if (langBtn) {
         langBtn.onclick = () => {
             const cur = document.documentElement.getAttribute('lang');
-            const next = cur === 'en' ? 'zh_CN' : 'en';
-            const nextShort = next === 'en' ? 'en' : 'zh';
-            applyLang(next);
-            maybeRedirectPost(nextShort);
+            applyLang(cur === 'en' ? 'zh_CN' : 'en');
         };
     }
 
     let switchBtn = document.getElementById("scheme-switch");
     if (switchBtn) {
-        switchBtn.onclick = function () {
-            switchTheme()
-        };
+        switchBtn.onclick = function () { switchTheme(); };
     }
 
     let settingBtn = document.getElementById("display-settings-switch");
@@ -167,7 +128,6 @@ function loadButtonScript() {
 }
 
 loadButtonScript();
-// Re-apply language and re-wire button after each Swup navigation
 document.addEventListener('swup:page:view', () => {
     initLang();
     loadButtonScript();
