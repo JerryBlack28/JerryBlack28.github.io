@@ -1,4 +1,5 @@
 ---
+import { getCollection } from "astro:content";
 import { Icon } from "astro-icon/components";
 import { navBarConfig, siteConfig } from "../config";
 import { LinkPresets } from "../constants/link-presets";
@@ -19,6 +20,17 @@ let links: NavBarLink[] = navBarConfig.links.map(
 		return item;
 	},
 );
+
+const allPosts = await getCollection("posts", ({ data }) =>
+	import.meta.env.PROD ? data.draft !== true : true,
+);
+const translationMap: Record<string, { zh?: string; en?: string }> = {};
+for (const post of allPosts) {
+	const isEn = post.data.lang === "en";
+	const base = isEn ? post.slug.replace(/-en$/, "") : post.slug;
+	if (!translationMap[base]) translationMap[base] = {};
+	translationMap[base][isEn ? "en" : "zh"] = post.slug;
+}
 ---
 <div id="navbar" class="z-50 onload-animation">
     <div class="absolute h-8 left-0 right-0 -top-8 bg-[var(--card-bg)] transition"></div> <!-- used for onload animation -->
@@ -70,7 +82,7 @@ let links: NavBarLink[] = navBarConfig.links.map(
     </div>
 </div>
 
-<script>
+<script define:vars={{ translationMap, postsBase: url("/posts/") }}>
 function switchTheme() {
     if (localStorage.theme === 'dark') {
         document.documentElement.classList.remove('dark');
@@ -92,12 +104,32 @@ function initLang() {
 }
 initLang();
 
+function maybeRedirectPost(targetLang) {
+    const path = window.location.pathname;
+    const base = postsBase.replace(/\/$/, "");
+    if (!path.startsWith(base + "/")) return false;
+    const slug = path.slice(base.length + 1).replace(/\/$/, "");
+    if (!slug) return false;
+    let pair = null;
+    for (const val of Object.values(translationMap)) {
+        if (val.zh === slug || val.en === slug) { pair = val; break; }
+    }
+    if (!pair) return false;
+    const target = targetLang === "en" ? pair.en : pair.zh;
+    if (!target || target === slug) return false;
+    window.location.href = base + "/" + target + "/";
+    return true;
+}
+
 function loadButtonScript() {
     const langBtn = document.getElementById('lang-switch');
     if (langBtn) {
         langBtn.onclick = () => {
             const cur = document.documentElement.getAttribute('lang');
-            applyLang(cur === 'en' ? 'zh_CN' : 'en');
+            const next = cur === 'en' ? 'zh_CN' : 'en';
+            const nextShort = next === 'en' ? 'en' : 'zh';
+            applyLang(next);
+            maybeRedirectPost(nextShort);
         };
     }
 

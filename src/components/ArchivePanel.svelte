@@ -8,9 +8,6 @@ import { getPostUrlBySlug } from "../utils/url-utils";
 export let tags: string[];
 export let categories: string[];
 export let sortedPosts: Post[] = [];
-export let enSlugs: string[] = [];
-
-const enSlugSet = new Set(enSlugs);
 
 const params = new URLSearchParams(window.location.search);
 tags = params.has("tag") ? params.getAll("tag") : [];
@@ -49,10 +46,9 @@ onMount(async () => {
 	function applyFilter() {
 		const currentLang =
 			document.documentElement.getAttribute("lang") === "en" ? "en" : "zh";
-		let filteredPosts: Post[] = sortedPosts.filter((post) => {
-			if (currentLang === "en") return enSlugSet.size === 0 || enSlugSet.has(post.slug);
-			return true;
-		});
+		let filteredPosts: Post[] = sortedPosts.filter(
+			(post) => (post.data.lang || "zh") === currentLang,
+		);
 
 		if (tags.length > 0) {
 			filteredPosts = filteredPosts.filter(

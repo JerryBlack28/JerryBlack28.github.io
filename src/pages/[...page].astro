@@ -1,5 +1,4 @@
 ---
-import { getCollection } from "astro:content";
 import type { GetStaticPaths } from "astro";
 import Pagination from "../components/control/Pagination.astro";
 import PostPage from "../components/PostPage.astro";
@@ -14,18 +13,9 @@ export const getStaticPaths = (async ({ paginate }) => {
 
 const { page } = Astro.props;
 const len = page.data.length;
-
-const enPosts = await getCollection("posts", ({ data }) => data.lang === "en");
-const enByBase: Record<string, { title: string; description?: string }> = {};
-for (const e of enPosts) {
-	enByBase[e.slug.replace(/-en$/, "")] = {
-		title: e.data.title,
-		description: e.data.description,
-	};
-}
 ---
 
 <MainGridLayout>
-    <PostPage page={page} enByBase={enByBase}></PostPage>
+    <PostPage page={page}></PostPage>
     <Pagination class="mx-auto onload-animation" page={page} style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
 </MainGridLayout>

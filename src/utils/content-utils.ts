@@ -6,7 +6,6 @@ import { getCategoryUrl } from "@utils/url-utils.ts";
 // // Retrieve posts and sort them by publication date
 async function getRawSortedPosts() {
 	const allBlogPosts = await getCollection("posts", ({ data }) => {
-		if (data.lang === "en") return false; // EN content is embedded in ZH pages
 		return import.meta.env.PROD ? data.draft !== true : true;
 	});
 

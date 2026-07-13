@@ -1,5 +1,4 @@
 ---
-import { getCollection } from "astro:content";
 import ArchivePanel from "@components/ArchivePanel.svelte";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
@@ -7,11 +6,8 @@ import MainGridLayout from "@layouts/MainGridLayout.astro";
 import { getSortedPostsList } from "../utils/content-utils";
 
 const sortedPostsList = await getSortedPostsList();
-
-const enPosts = await getCollection("posts", ({ data }) => data.lang === "en");
-const enSlugs = enPosts.map((e) => e.slug.replace(/-en$/, ""));
 ---
 
 <MainGridLayout title={i18n(I18nKey.archive)}>
-    <ArchivePanel sortedPosts={sortedPostsList} enSlugs={enSlugs} client:only="svelte"></ArchivePanel>
+    <ArchivePanel sortedPosts={sortedPostsList} client:only="svelte"></ArchivePanel>
 </MainGridLayout>
