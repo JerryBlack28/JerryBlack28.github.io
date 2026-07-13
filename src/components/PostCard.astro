@@ -12,6 +12,7 @@ interface Props {
 	class?: string;
 	entry: CollectionEntry<"posts">;
 	title: string;
+	titleEn?: string;
 	url: string;
 	published: Date;
 	updated?: Date;
@@ -19,12 +20,14 @@ interface Props {
 	category: string | null;
 	image: string;
 	description: string;
+	descriptionEn?: string;
 	draft: boolean;
 	style: string;
 }
 const {
 	entry,
 	title,
+	titleEn,
 	url,
 	published,
 	updated,
@@ -32,6 +35,7 @@ const {
 	category,
 	image,
 	description,
+	descriptionEn,
 	style,
 } = Astro.props;
 const className = Astro.props.class;
@@ -51,7 +55,9 @@ const { remarkPluginFrontmatter } = await entry.render();
         before:w-1 before:h-5 before:rounded-md before:bg-[var(--primary)]
         before:absolute before:top-[35px] before:left-[18px] before:hidden md:before:block
         ">
-            {title}
+            {titleEn ? (
+                <><span data-lang="zh">{title}</span><span data-lang="en">{titleEn}</span></>
+            ) : title}
             <Icon class="inline text-[2rem] text-[var(--primary)] md:hidden translate-y-0.5 absolute" name="material-symbols:chevron-right-rounded" ></Icon>
             <Icon class="text-[var(--primary)] text-[2rem] transition hidden md:inline absolute translate-y-0.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0" name="material-symbols:chevron-right-rounded"></Icon>
         </a>
@@ -61,7 +67,9 @@ const { remarkPluginFrontmatter } = await entry.render();
 
         <!-- description -->
         <div class:list={["transition text-75 mb-3.5 pr-4", {"line-clamp-2 md:line-clamp-1": !description}]}>
-            { description || remarkPluginFrontmatter.excerpt }
+            {descriptionEn ? (
+                <><span data-lang="zh">{description || remarkPluginFrontmatter.excerpt}</span><span data-lang="en">{descriptionEn}</span></>
+            ) : (description || remarkPluginFrontmatter.excerpt)}
         </div>
 
         <!-- word count and read time  -->
