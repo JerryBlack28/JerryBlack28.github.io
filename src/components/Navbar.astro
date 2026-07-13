@@ -166,6 +166,11 @@ function loadButtonScript() {
 }
 
 loadButtonScript();
+// Re-apply language and re-wire button after each Swup navigation
+document.addEventListener('swup:page:view', () => {
+    initLang();
+    loadButtonScript();
+});
 </script>
 
 {import.meta.env.PROD && <script is:inline define:vars={{scriptUrl: url('/pagefind/pagefind.js')}}>

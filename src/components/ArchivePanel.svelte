@@ -43,50 +43,63 @@ function formatTag(tagList: string[]) {
 }
 
 onMount(async () => {
-	const currentLang =
-		document.documentElement.getAttribute("lang") === "en" ? "en" : "zh";
-	let filteredPosts: Post[] = sortedPosts.filter(
-		(post) => (post.data.lang || "zh") === currentLang,
-	);
-
-	if (tags.length > 0) {
-		filteredPosts = filteredPosts.filter(
-			(post) =>
-				Array.isArray(post.data.tags) &&
-				post.data.tags.some((tag) => tags.includes(tag)),
+	function applyFilter() {
+		const currentLang =
+			document.documentElement.getAttribute("lang") === "en" ? "en" : "zh";
+		let filteredPosts: Post[] = sortedPosts.filter(
+			(post) => (post.data.lang || "zh") === currentLang,
 		);
-	}
 
-	if (categories.length > 0) {
-		filteredPosts = filteredPosts.filter(
-			(post) => post.data.category && categories.includes(post.data.category),
+		if (tags.length > 0) {
+			filteredPosts = filteredPosts.filter(
+				(post) =>
+					Array.isArray(post.data.tags) &&
+					post.data.tags.some((tag) => tags.includes(tag)),
+			);
+		}
+
+		if (categories.length > 0) {
+			filteredPosts = filteredPosts.filter(
+				(post) =>
+					post.data.category && categories.includes(post.data.category),
+			);
+		}
+
+		if (uncategorized) {
+			filteredPosts = filteredPosts.filter((post) => !post.data.category);
+		}
+
+		const grouped = filteredPosts.reduce(
+			(acc, post) => {
+				const year = post.data.published.getFullYear();
+				if (!acc[year]) {
+					acc[year] = [];
+				}
+				acc[year].push(post);
+				return acc;
+			},
+			{} as Record<number, Post[]>,
 		);
+
+		const groupedPostsArray = Object.keys(grouped).map((yearStr) => ({
+			year: Number.parseInt(yearStr, 10),
+			posts: grouped[Number.parseInt(yearStr, 10)],
+		}));
+
+		groupedPostsArray.sort((a, b) => b.year - a.year);
+
+		groups = groupedPostsArray;
 	}
 
-	if (uncategorized) {
-		filteredPosts = filteredPosts.filter((post) => !post.data.category);
-	}
+	applyFilter();
 
-	const grouped = filteredPosts.reduce(
-		(acc, post) => {
-			const year = post.data.published.getFullYear();
-			if (!acc[year]) {
-				acc[year] = [];
-			}
-			acc[year].push(post);
-			return acc;
-		},
-		{} as Record<number, Post[]>,
-	);
+	const observer = new MutationObserver(applyFilter);
+	observer.observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ["lang"],
+	});
 
-	const groupedPostsArray = Object.keys(grouped).map((yearStr) => ({
-		year: Number.parseInt(yearStr, 10),
-		posts: grouped[Number.parseInt(yearStr, 10)],
-	}));
-
-	groupedPostsArray.sort((a, b) => b.year - a.year);
-
-	groups = groupedPostsArray;
+	return () => observer.disconnect();
 });
 </script>
 
