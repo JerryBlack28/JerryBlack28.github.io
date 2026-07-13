@@ -1,6 +1,6 @@
 ---
 import path from "node:path";
-import type { CollectionEntry } from "astro:content";
+import { getCollection, type CollectionEntry } from "astro:content";
 import License from "@components/misc/License.astro";
 import Markdown from "@components/misc/Markdown.astro";
 import I18nKey from "@i18n/i18nKey";
@@ -18,12 +18,11 @@ import { formatDateToYYYYMMDD } from "../../utils/date-utils";
 export async function getStaticPaths() {
 	const blogEntries = await getSortedPosts();
 
-	// Build base-slug → EN entry lookup
+	// Fetch EN posts directly (they're excluded from getSortedPosts)
+	const enPosts = await getCollection("posts", ({ data }) => data.lang === "en");
 	const enByBase: Record<string, CollectionEntry<"posts">> = {};
-	for (const e of blogEntries) {
-		if (e.data.lang === "en") {
-			enByBase[e.slug.replace(/-en$/, "")] = e;
-		}
+	for (const e of enPosts) {
+		enByBase[e.slug.replace(/-en$/, "")] = e;
 	}
 
 	return blogEntries
