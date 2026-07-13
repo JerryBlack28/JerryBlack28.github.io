@@ -1,5 +1,5 @@
 ---
-title: Cards(ABC 247 F)
+title: Cards (ABC 247 F)
 published: 2022-04-29
 description: 卢卡斯数列 + 并查集，处理环上覆盖计数问题。
 tags: [算法, 卢卡斯数列, 并查集, 图论]

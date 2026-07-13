@@ -1,5 +1,5 @@
 ---
-title: 810975(2021 CCPC 威海 M)
+title: 810975 (2021 CCPC 威海 M)
 published: 2022-03-05
 description: 容斥 + 组合数，求给定连赢长度约束下的比赛情况数。
 tags: [算法, 组合数学, 容斥]
