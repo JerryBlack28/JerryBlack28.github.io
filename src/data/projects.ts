@@ -13,4 +13,14 @@ export interface Project {
 	githubUrl?: string;
 }
 
-export const projectsData: Project[] = [];
+export const projectsData: Project[] = [
+	{
+		id: "acmlab",
+		title: "ACMLAB",
+		description: "ACM 竞赛算法模板与题解库。",
+		category: "other",
+		status: "in-progress",
+		techStack: ["C++", "Algorithms"],
+		githubUrl: "https://github.com/JerryBlack28/ACMLAB",
+	},
+];
