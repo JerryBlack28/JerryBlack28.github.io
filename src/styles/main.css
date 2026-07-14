@@ -6,6 +6,8 @@
     font-weight: 400;
     font-style: normal;
     font-display: swap;
+    /* CJK Unified Ideographs (Basic + Ext A + Compatibility) — Latin/kana fall back to Zen Maru Gothic */
+    unicode-range: U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF;
 }
 
 @font-face {
