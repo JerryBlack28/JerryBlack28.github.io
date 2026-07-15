@@ -12,8 +12,10 @@ const { headings, style } = Astro.props;
 const className = Astro.props.class;
 ---
 {/* #toc is the Swup container — must exist on every page, even when
-   there are no headings, so Swup doesn't fall back to a full reload */}
-<div id="toc" class:list={[{ hidden: headings.length === 0 }]}>
+   there are no headings, so Swup doesn't fall back to a full reload.
+   Use display:contents so the inner WidgetLayout behaves as a direct
+   child of the flex sidebar-sticky (preserves gap and card layout). */}
+<div id="toc" class:list={[headings.length === 0 ? "hidden" : "contents"]}>
 	{headings.length > 0 && (
 		<WidgetLayout name="目录" nameEn="Table of Contents" id="sidebar-toc" class={className} style={style}>
 			<div id="toc-inner-wrapper" class="relative max-h-[calc(100vh_-_20rem)] overflow-y-auto overflow-x-hidden hide-scrollbar">
