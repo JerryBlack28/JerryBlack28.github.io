@@ -56,6 +56,7 @@ export default defineConfig({
 			updateBodyClass: false,
 			globalInstance: true,
 			animateHistoryBrowsing: false,
+			reloadScripts: false,
 		}),
 		icon({
 			include: {
