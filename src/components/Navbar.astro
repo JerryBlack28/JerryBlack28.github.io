@@ -117,7 +117,12 @@ function maybeRedirectPost(targetLang) {
     if (!pair) return false;
     const target = targetLang === "en" ? pair.en : pair.zh;
     if (!target || target === slug) return false;
-    window.location.href = base + "/" + target + "/";
+    const targetUrl = base + "/" + target + "/";
+    if (window.swup && typeof window.swup.navigate === "function") {
+        window.swup.navigate(targetUrl);
+    } else {
+        window.location.href = targetUrl;
+    }
     return true;
 }
 
