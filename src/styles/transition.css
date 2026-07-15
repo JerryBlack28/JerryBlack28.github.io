@@ -2,6 +2,17 @@
 :root {
     --swup-duration: 120ms;
 }
+
+/* Let the browser handle scroll animations natively — much lighter than
+   scrl's per-frame JS-driven window.scrollTo (which forces main-thread
+   work every frame). SwupScrollPlugin now calls the legacy scrollTo(x, y)
+   form, which honors this CSS. */
+html {
+    scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+}
 @media (width < 768px) {
     :root { --swup-duration: 150ms; }
 }

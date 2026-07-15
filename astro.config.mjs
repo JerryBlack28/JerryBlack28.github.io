@@ -45,7 +45,7 @@ export default defineConfig({
 			containers: ["main", "#toc"],
 			smoothScrolling: {
 				doScrollingRightAway: true,
-				animateScroll: { betweenPages: true, samePageWithHash: true, samePage: true },
+				animateScroll: false,
 				scrollFriction: 0.4,
 				scrollAcceleration: 0.12,
 			},
