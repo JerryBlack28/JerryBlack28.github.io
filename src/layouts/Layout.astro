@@ -419,18 +419,44 @@ const setup = () => {
 			navbar.classList.add('navbar-hidden')
 		}
 	})
-	window.swup.hooks.on('content:replace', () => {
-		runWhenIdle(initCustomScrollbar)
-	})
-	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
-		// change banner height immediately when a link is clicked
+	window.swup.hooks.on('content:replace', (visit: {to: {url: string}}) => {
+		// Toggle is-home mid-transition, under fade cover. Combined with the
+		// `transition: none` rule on #main-grid/#banner-wrapper during is-animating,
+		// the 30vh layout translate snaps invisibly.
+		//
+		// To keep the sidebar in the same viewport position across the snap,
+		// compensate scrollY by the same 30vh: main-grid moves up by extend →
+		// scroll up by extend so the sidebar's viewport position is unchanged.
+		// The subsequent scroll animation then runs from the compensated Y to 0
+		// on the new DOM, giving a single continuous "scroll to article top".
 		const bodyElement = document.querySelector('body')
-		if (pathsEqual(visit.to.url, url('/'))) {
-			bodyElement!.classList.add('lg:is-home');
-		} else {
-			bodyElement!.classList.remove('lg:is-home');
+		if (!bodyElement) return
+
+		const wasHome = bodyElement.classList.contains('lg:is-home')
+		const willBeHome = pathsEqual(visit.to.url, url('/'))
+
+		if (wasHome !== willBeHome) {
+			const extendPx = parseFloat(
+				getComputedStyle(document.documentElement).getPropertyValue('--banner-height-extend'),
+			) || (window.innerHeight * (BANNER_HEIGHT_EXTEND / 100))
+			const delta = wasHome ? -extendPx : extendPx
+			const currentY = window.scrollY
+			const newY = Math.max(0, currentY + delta)
+
+			if (willBeHome) {
+				bodyElement.classList.add('lg:is-home')
+			} else {
+				bodyElement.classList.remove('lg:is-home')
+			}
+
+			// Instant scroll (not animated) — SwupScrollPlugin's smooth scroll to Y=0
+			// will pick up from this new position via content:scroll (which fires after).
+			window.scrollTo(0, newY)
 		}
 
+		runWhenIdle(initCustomScrollbar)
+	})
+	window.swup.hooks.on('visit:start', (_visit: {to: {url: string}}) => {
 		// increase the page height during page transition to prevent the scrolling animation from jumping
 		const heightExtend = document.getElementById('page-height-extend')
 		if (heightExtend) {

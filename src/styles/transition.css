@@ -77,3 +77,13 @@ html.swup-nav .onload-animation {
 
 html.swup-nav #post-container :nth-child(n) { animation-delay: 0ms !important; }
 
+/* During Swup navigation, snap the layout-shift transitions (banner + main grid
+   translate-y) so they finish under the fade cover instead of playing out as
+   a second visible motion after the scroll animation completes. */
+html.is-animating #banner-wrapper,
+html.is-animating #banner,
+html.is-animating #main-grid,
+html.is-animating #top-row {
+    transition: none !important;
+}
+
