@@ -43,7 +43,7 @@ export default defineConfig({
 			theme: false,
 			animationClass: "transition-swup-",
 			containers: ["main", "#toc"],
-			smoothScrolling: false,
+			smoothScrolling: true,
 			cache: true,
 			preload: false,
 			accessibility: true,
