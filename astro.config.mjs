@@ -24,6 +24,12 @@ import { remarkExcerpt } from "./src/plugins/remark-excerpt.js";
 import { remarkReadingTime } from "./src/plugins/remark-reading-time.mjs";
 import { pluginCustomCopyButton } from "./src/plugins/expressive-code/custom-copy-button.js";
 
+function mergeFontStyle(existing, add) {
+	if (!existing) return add;
+	if (existing.includes(add)) return existing;
+	return `${existing} ${add}`.trim();
+}
+
 // https://astro.build/config
 export default defineConfig({
 	site: "https://JerryBlack28.github.io/",
@@ -57,6 +63,36 @@ export default defineConfig({
 		}),
 		expressiveCode({
 			themes: [expressiveCodeConfig.theme, expressiveCodeConfig.theme],
+			customizeTheme: (theme) => {
+				const italicScopes = new Set([
+					"comment",
+					"entity.name.type.class",
+					"keyword",
+					"storage.modifier",
+					"storage.type.class.js",
+				]);
+				const nonItalicScopes = new Set([
+					"invalid",
+					"keyword.operator",
+					"constant.numeric.css",
+					"keyword.other.unit.px.css",
+					"constant.numeric.decimal.js",
+					"constant.numeric.json",
+				]);
+				for (const setting of theme.settings) {
+					const scopes = Array.isArray(setting.scope) ? setting.scope : setting.scope ? [setting.scope] : [];
+					if (scopes.some((s) => italicScopes.has(s))) {
+						setting.settings.fontStyle = mergeFontStyle(setting.settings.fontStyle, "italic");
+					}
+					if (scopes.some((s) => nonItalicScopes.has(s))) {
+						setting.settings.fontStyle = "";
+					}
+				}
+				theme.settings.push(
+					{ scope: [...italicScopes], settings: { fontStyle: "italic" } },
+					{ scope: [...nonItalicScopes], settings: { fontStyle: "" } },
+				);
+			},
 			plugins: [
 				pluginCollapsibleSections(),
 				pluginLineNumbers(),

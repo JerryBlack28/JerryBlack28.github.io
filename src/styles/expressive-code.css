@@ -6,4 +6,8 @@
     .title {
         font-family: "Maple Mono NF CN", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
+
+    pre, code {
+        font-feature-settings: "zero", "cv01", "cv04", "cv34", "cv35";
+    }
 }

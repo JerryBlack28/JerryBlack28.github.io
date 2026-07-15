@@ -38,6 +38,7 @@
         @apply bg-[var(--inline-code-bg)] text-[var(--inline-code-color)] px-1 py-0.5 rounded-md overflow-hidden;
 
         font-family: 'Maple Mono NF CN', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+        font-feature-settings: "zero", "cv01", "cv04", "cv34", "cv35";
         &:before {
             content:none;
         }
