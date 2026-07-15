@@ -419,10 +419,14 @@ const setup = () => {
 			navbar.classList.add('navbar-hidden')
 		}
 	})
-	window.swup.hooks.on('content:replace', (visit: {to: {url: string}}) => {
-		// Toggle is-home mid-transition, under fade cover. Combined with the
-		// `transition: none` rule on #main-grid / #banner-wrapper during
-		// is-animating, the 30vh layout translate snaps invisibly.
+	window.swup.hooks.on('content:replace', () => {
+		runWhenIdle(initCustomScrollbar)
+	})
+	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
+		// Toggle is-home at visit:start so the layout translate starts animating
+		// in parallel with the scroll animation. With both running the same
+		// duration, the sidebar's viewport position moves monotonically —
+		// a single continuous motion, not two segments.
 		const bodyElement = document.querySelector('body')
 		if (bodyElement) {
 			if (pathsEqual(visit.to.url, url('/'))) {
@@ -432,9 +436,6 @@ const setup = () => {
 			}
 		}
 
-		runWhenIdle(initCustomScrollbar)
-	})
-	window.swup.hooks.on('visit:start', (_visit: {to: {url: string}}) => {
 		// increase the page height during page transition to prevent the scrolling animation from jumping
 		const heightExtend = document.getElementById('page-height-extend')
 		if (heightExtend) {

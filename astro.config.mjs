@@ -44,7 +44,7 @@ export default defineConfig({
 			animationClass: "transition-swup-",
 			containers: ["main", "#toc"],
 			smoothScrolling: {
-				doScrollingRightAway: false,
+				doScrollingRightAway: true,
 				animateScroll: { betweenPages: true, samePageWithHash: true, samePage: true },
 				scrollFriction: 0.4,
 				scrollAcceleration: 0.12,
