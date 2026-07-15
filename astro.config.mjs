@@ -50,7 +50,7 @@ export default defineConfig({
 				scrollAcceleration: 0.12,
 			},
 			cache: true,
-			preload: false,
+			preload: { hover: true, visible: false },
 			accessibility: true,
 			updateHead: true,
 			updateBodyClass: false,
