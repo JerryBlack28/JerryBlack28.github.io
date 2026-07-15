@@ -1,6 +1,5 @@
 ---
 import type { MarkdownHeading } from "astro";
-import Buddy from "./Buddy.astro";
 import Categories from "./Categories.astro";
 import Profile from "./Profile.astro";
 import SideBarTOC from "./SideBarTOC.astro";
@@ -18,6 +17,5 @@ const className = Astro.props.class;
     <Profile></Profile>
     <Categories class="onload-animation" style="animation-delay: 150ms"></Categories>
     <Tag class="onload-animation" style="animation-delay: 200ms"></Tag>
-    <Buddy class="onload-animation" style="animation-delay: 225ms" />
     <SideBarTOC headings={headings} class="onload-animation sticky top-4" style="animation-delay: 250ms" />
 </div>

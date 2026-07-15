@@ -1,9 +1,7 @@
 ---
 import fs from "node:fs";
 import path from "node:path";
-import WidgetLayout from "./WidgetLayout.astro";
 
-// Scan public/gifs at build time to build the URL pool.
 let gifs: string[] = [];
 try {
 	gifs = fs
@@ -11,22 +9,13 @@ try {
 		.filter((f) => /\.gif$/i.test(f))
 		.map((f) => `/gifs/${f}`);
 } catch {}
-
-interface Props {
-	class?: string;
-	style?: string;
-}
-const className = Astro.props.class;
-const style = Astro.props.style;
 ---
 {gifs.length > 0 && (
-	<WidgetLayout name="今日伙伴" nameEn="Today's Buddy" id="buddy" class={className} style={style}>
-		<buddy-widget data-gifs={JSON.stringify(gifs)} class="block">
-			<div class="w-full aspect-square rounded-xl overflow-hidden bg-[var(--btn-plain-bg)]">
-				<img class="w-full h-full object-cover" alt="Random buddy illustration" loading="lazy" decoding="async" />
-			</div>
-		</buddy-widget>
-	</WidgetLayout>
+	<buddy-widget data-gifs={JSON.stringify(gifs)}
+		class="fixed bottom-4 right-4 z-40 pointer-events-none block">
+		<img class="block max-w-[6rem] max-h-[6rem] md:max-w-[9rem] md:max-h-[9rem]"
+			alt="" loading="lazy" decoding="async" />
+	</buddy-widget>
 )}
 
 <script>
@@ -37,7 +26,6 @@ class BuddyWidget extends HTMLElement {
 		const img = this.querySelector<HTMLImageElement>("img");
 		if (!img) return;
 		const currentSrc = img.getAttribute("src") || "";
-		// If more than one gif, avoid picking the same one twice in a row.
 		let next: string;
 		do {
 			next = gifs[Math.floor(Math.random() * gifs.length)];
