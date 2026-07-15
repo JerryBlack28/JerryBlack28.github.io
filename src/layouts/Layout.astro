@@ -420,6 +420,26 @@ const setup = () => {
 			navbar.classList.add('navbar-hidden')
 		}
 	})
+	// Wait for the scroll-to-top animation to finish before fading out.
+	// Sequences the transition: scroll first, THEN swap the content —
+	// avoids the main-thread contention when scroll + fade + DOM swap all
+	// run at the same time.
+	window.swup.hooks.before('animation:out:start', () => {
+		if (window.scrollY <= 10) return;
+		return new Promise((resolve) => {
+			let settled = false;
+			const done = () => {
+				if (settled) return;
+				settled = true;
+				window.removeEventListener('scrollend', done);
+				resolve(undefined);
+			};
+			window.addEventListener('scrollend', done, { once: true });
+			// Fallback if `scrollend` never fires (older browsers, or a
+			// scroll that was immediately clamped to 0).
+			setTimeout(done, 800);
+		});
+	})
 	window.swup.hooks.on('content:replace', () => {
 		runWhenIdle(initCustomScrollbar)
 	})
