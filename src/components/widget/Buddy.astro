@@ -12,7 +12,8 @@ try {
 ---
 {gifs.length > 0 && (
 	<buddy-widget data-gifs={JSON.stringify(gifs)}
-		class="fixed bottom-4 right-4 z-40 pointer-events-none block">
+		class="fixed bottom-4 z-40 pointer-events-none block"
+		style="right: max(1rem, calc((100vw - var(--page-width)) / 2 + 1rem));">
 		<img class="block max-w-[6rem] max-h-[6rem] md:max-w-[9rem] md:max-h-[9rem]"
 			alt="" loading="lazy" decoding="async" />
 	</buddy-widget>
