@@ -1,9 +1,9 @@
 /* Page transition animations with Swup */
 html.is-changing .transition-swup-fade {
-    @apply transition-all duration-200
+    @apply transition-opacity duration-150 ease-out
 }
 html.is-animating .transition-swup-fade {
-    @apply opacity-0 translate-y-4
+    @apply opacity-0
 }
 
 /* Fade-in animations for components */
@@ -30,10 +30,12 @@ html.is-animating .transition-swup-fade {
     animation-fill-mode: forwards;
 }
 
-/* Swup navigations: shorten animation, drop staggered delays */
+/* Swup navigations: skip the fade-in-up entirely so Swup's own
+   crossfade is the only transition — avoids a visible "blank" gap
+   between Swup finishing and .onload-animation starting. */
 html.swup-nav .onload-animation {
-    animation: 150ms fade-in-subtle;
-    animation-fill-mode: forwards;
+    opacity: 1;
+    animation: none;
     animation-delay: 0ms !important;
 }
 #navbar {
