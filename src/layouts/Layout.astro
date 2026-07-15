@@ -203,6 +203,9 @@ import {
 	// SizeObserverPlugin,
 	// ClickScrollPlugin
 } from 'overlayscrollbars';
+// Register <table-of-contents> custom element globally so nav from a
+// TOC-less page (e.g. home) into an article picks up the element.
+import "../scripts/toc-custom-element";
 import {getHue, getStoredTheme, setHue, setTheme} from "../utils/setting-utils";
 import {pathsEqual, url} from "../utils/url-utils";
 import {
