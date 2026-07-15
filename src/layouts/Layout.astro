@@ -157,9 +157,6 @@ const bannerOffset =
 	>
 		<ConfigCarrier></ConfigCarrier>
 		<slot />
-
-		<!-- increase the page height during page transition to prevent the scrolling animation from jumping -->
-		<div id="page-height-extend" class="hidden h-[300vh]"></div>
 	</body>
 </html>
 
@@ -427,10 +424,6 @@ const setup = () => {
 		runWhenIdle(initCustomScrollbar)
 	})
 	window.swup.hooks.on('visit:start', (visit: {to: {url: string}}) => {
-		// Toggle is-home at visit:start so the layout translate starts animating
-		// in parallel with the scroll animation. With both running the same
-		// duration, the sidebar's viewport position moves monotonically —
-		// a single continuous motion, not two segments.
 		const bodyElement = document.querySelector('body')
 		if (bodyElement) {
 			if (pathsEqual(visit.to.url, url('/'))) {
@@ -440,38 +433,19 @@ const setup = () => {
 			}
 		}
 
-		// increase the page height during page transition to prevent the scrolling animation from jumping
-		const heightExtend = document.getElementById('page-height-extend')
-		if (heightExtend) {
-			heightExtend.classList.remove('hidden')
-		}
-
 		// Hide the TOC while scrolling back to top
 		let toc = document.getElementById('toc-wrapper');
 		if (toc) {
 			toc.classList.add('toc-not-ready')
 		}
 	});
-	window.swup.hooks.on('page:view', () => {
-		// hide the temp high element when the transition is done
-		const heightExtend = document.getElementById('page-height-extend')
-		if (heightExtend) {
-			heightExtend.classList.remove('hidden')
-		}
-	});
-	window.swup.hooks.on('visit:end', (_visit: {to: {url: string}}) => {
+	window.swup.hooks.on('visit:end', () => {
 		setTimeout(() => {
-			const heightExtend = document.getElementById('page-height-extend')
-			if (heightExtend) {
-				heightExtend.classList.add('hidden')
+			const toc = document.getElementById('toc-wrapper');
+			if (toc) {
+				toc.classList.remove('toc-not-ready')
 			}
-
-            // Just make the transition looks better
-            const toc = document.getElementById('toc-wrapper');
-            if (toc) {
-                toc.classList.remove('toc-not-ready')
-            }
-        }, 200)
+		}, 200)
 	});
 }
 if (window?.swup?.hooks) {
