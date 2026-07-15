@@ -493,7 +493,19 @@ function scrollFunction() {
 		}
 	}
 }
-window.onscroll = scrollFunction
+
+// rAF-throttle the scroll handler so class toggles + style recalcs
+// happen at most once per frame. Without this, scrl's per-frame
+// window.scrollTo calls fire onscroll each time and thrash the main thread.
+let scrollTicking = false;
+window.onscroll = () => {
+	if (scrollTicking) return;
+	scrollTicking = true;
+	requestAnimationFrame(() => {
+		scrollFunction();
+		scrollTicking = false;
+	});
+};
 
 window.onresize = () => {
 	// calculate the --banner-height-extend, which needs to be a multiple of 4 to avoid blurry text
