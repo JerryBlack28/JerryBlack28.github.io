@@ -18,7 +18,7 @@ const className = Astro.props.class;
 <div id="toc" class:list={[headings.length === 0 ? "hidden" : "contents"]}>
 	{headings.length > 0 && (
 		<WidgetLayout name="目录" nameEn="Table of Contents" id="sidebar-toc" class={className} style={style}>
-			<div id="toc-inner-wrapper" class="relative max-h-[calc(100vh_-_20rem)] overflow-y-auto overflow-x-hidden hide-scrollbar">
+			<div id="toc-inner-wrapper" class="relative max-h-[24rem] overflow-y-auto overflow-x-hidden hide-scrollbar">
 				<TOC headings={headings} />
 			</div>
 		</WidgetLayout>
