@@ -6,7 +6,7 @@ let gifs: string[] = [];
 try {
 	gifs = fs
 		.readdirSync(path.resolve("./public/gifs"))
-		.filter((f) => /\.gif$/i.test(f))
+		.filter((f) => /\.(webp|gif)$/i.test(f))
 		.map((f) => `/gifs/${f}`);
 } catch {}
 ---
