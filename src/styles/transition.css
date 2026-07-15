@@ -18,11 +18,23 @@ html.is-animating .transition-swup-fade {
     }
 }
 
+@keyframes fade-in-subtle {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
 /* Main components */
 .onload-animation {
     opacity: 0;
     animation: 300ms fade-in-up;
     animation-fill-mode: forwards;
+}
+
+/* Swup navigations: shorten animation, drop staggered delays */
+html.swup-nav .onload-animation {
+    animation: 150ms fade-in-subtle;
+    animation-fill-mode: forwards;
+    animation-delay: 0ms !important;
 }
 #navbar {
     animation-delay: 0ms
@@ -50,4 +62,6 @@ html.is-animating .transition-swup-fade {
 #post-container :nth-child(4) { animation-delay: calc(var(--content-delay) + 175ms) }
 #post-container :nth-child(5) { animation-delay: calc(var(--content-delay) + 250ms) }
 #post-container :nth-child(6) { animation-delay: calc(var(--content-delay) + 325ms) }
+
+html.swup-nav #post-container :nth-child(n) { animation-delay: 0ms !important; }
 

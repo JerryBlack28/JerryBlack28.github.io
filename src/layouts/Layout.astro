@@ -392,6 +392,7 @@ const setup = () => {
 	window.swup.hooks.on('link:click', () => {
 		// Remove the delay for the first time page load
 		document.documentElement.style.setProperty('--content-delay', '0ms')
+		document.documentElement.classList.add('swup-nav')
 
 		// prevent elements from overlapping the navbar
 		if (!bannerEnabled) {
