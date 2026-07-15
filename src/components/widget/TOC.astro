@@ -200,14 +200,19 @@ class TableOfContents extends HTMLElement {
     };
 
     connectedCallback() {
-        // wait for the onload animation to finish, which makes the `getBoundingClientRect` return correct values
+        // wait for the onload animation to finish, which makes the `getBoundingClientRect` return correct values.
+        // On Swup navigations we disable that animation, so animationend never fires — fall back to rAF.
         const element = document.querySelector('.prose');
+        const runInit = () => this.init();
         if (element) {
-            element.addEventListener('animationend', () => {
-                this.init();
-            }, { once: true });
+            const animName = getComputedStyle(element).animationName;
+            if (animName && animName !== 'none') {
+                element.addEventListener('animationend', runInit, { once: true });
+            } else {
+                requestAnimationFrame(runInit);
+            }
         } else {
-            console.debug('Animation element not found');
+            requestAnimationFrame(runInit);
         }
     };
 
