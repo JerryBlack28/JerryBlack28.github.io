@@ -1,0 +1,405 @@
+---
+// A "long strip" pixel-fish Boids simulation. Fish swim, avoid each other,
+// and loosely school along the horizontal axis. Rendered on a canvas placed
+// at the bottom of the page.
+---
+<fish-strip class="block w-full mt-4">
+	<div class="relative w-full h-[96px] overflow-hidden
+		bg-[oklch(96%_0.015_var(--hue))] dark:bg-[oklch(20%_0.02_var(--hue))]
+		transition">
+		<canvas class="block w-full h-full" aria-hidden="true"></canvas>
+	</div>
+</fish-strip>
+
+<script>
+type Palette = readonly (string | null)[];
+type SpriteSpec = {
+	palette: Palette;
+	// Each character maps to a palette index; " " is transparent.
+	pattern: readonly string[];
+	scale: number;
+};
+
+// Right-facing pixel fish. Each string is one row (left→right = tail→head).
+const SPRITES: SpriteSpec[] = [
+	{
+		// classic goldfish
+		palette: [null, "#f59e42", "#c2410c", "#fde68a", "#1f2937", "#ffffff"],
+		pattern: [
+			"  22       ",
+			" 2211 1111 ",
+			"22111111115",
+			" 2211111145",
+			"22111111115",
+			" 2211 1111 ",
+			"  22       ",
+		],
+		scale: 2,
+	},
+	{
+		// blue tang
+		palette: [null, "#3b82f6", "#1e3a8a", "#fbbf24", "#0f172a", "#ffffff"],
+		pattern: [
+			"  22       ",
+			" 2211 1111 ",
+			"221111111 5",
+			" 22111111 5",
+			"221111111 5",
+			" 2211 1111 ",
+			"  22       ",
+		],
+		scale: 2,
+	},
+	{
+		// coral
+		palette: [null, "#fb7185", "#9f1239", "#fecdd3", "#111827", "#ffffff"],
+		pattern: [
+			"  22       ",
+			" 2211 3333 ",
+			"22133333315",
+			" 2213333345",
+			"22133333315",
+			" 2211 3333 ",
+			"  22       ",
+		],
+		scale: 2,
+	},
+];
+
+class FishStrip extends HTMLElement {
+	canvas: HTMLCanvasElement | null = null;
+	ctx: CanvasRenderingContext2D | null = null;
+	spriteRight: HTMLCanvasElement[] = [];
+	spriteLeft: HTMLCanvasElement[] = [];
+	spriteW: number[] = [];
+	spriteH: number[] = [];
+
+	boids: {
+		x: number; y: number; vx: number; vy: number; sp: number;
+		// Per-fish speed preferences and mood, so the school has fast/slow
+		// individuals that speed up and slow down independently.
+		baseSpeed: number; // preferred cruising speed
+		mood: number;      // current speed multiplier, drifts over time
+		moodT: number;     // time until next mood change
+		turnT: number;     // time until next spontaneous heading nudge
+	}[] = [];
+
+	rafId = 0;
+	last = 0;
+	dpr = 1;
+	w = 0;
+	h = 0;
+	visible = false;
+	docVisible = true;
+	io: IntersectionObserver | null = null;
+	ro: ResizeObserver | null = null;
+
+	connectedCallback() {
+		this.canvas = this.querySelector("canvas");
+		if (!this.canvas) return;
+		this.ctx = this.canvas.getContext("2d");
+		if (!this.ctx) return;
+		this.ctx.imageSmoothingEnabled = false;
+
+		this.buildSprites();
+		this.resize();
+		this.seed();
+
+		this.ro = new ResizeObserver(() => {
+			this.resize();
+			this.seed();
+		});
+		this.ro.observe(this.canvas);
+
+		this.io = new IntersectionObserver((entries) => {
+			this.visible = entries[0]?.isIntersecting ?? false;
+			this.syncRunning();
+		}, { threshold: 0 });
+		this.io.observe(this);
+
+		document.addEventListener("visibilitychange", this.onDocVisibility);
+		this.docVisible = !document.hidden;
+	}
+
+	disconnectedCallback() {
+		this.stop();
+		this.io?.disconnect();
+		this.ro?.disconnect();
+		document.removeEventListener("visibilitychange", this.onDocVisibility);
+	}
+
+	onDocVisibility = () => {
+		this.docVisible = !document.hidden;
+		this.syncRunning();
+	};
+
+	syncRunning() {
+		if (this.visible && this.docVisible) this.start();
+		else this.stop();
+	}
+
+	buildSprites() {
+		this.spriteRight = [];
+		this.spriteLeft = [];
+		this.spriteW = [];
+		this.spriteH = [];
+		for (const spec of SPRITES) {
+			const cols = spec.pattern[0].length;
+			const rows = spec.pattern.length;
+			const w = cols * spec.scale;
+			const h = rows * spec.scale;
+			this.spriteW.push(w);
+			this.spriteH.push(h);
+
+			const right = document.createElement("canvas");
+			right.width = w; right.height = h;
+			const rctx = right.getContext("2d")!;
+			rctx.imageSmoothingEnabled = false;
+			for (let y = 0; y < rows; y++) {
+				const row = spec.pattern[y];
+				for (let x = 0; x < cols; x++) {
+					const ch = row[x];
+					if (ch === " " || ch === undefined) continue;
+					const idx = Number(ch);
+					const color = spec.palette[idx];
+					if (!color) continue;
+					rctx.fillStyle = color;
+					rctx.fillRect(x * spec.scale, y * spec.scale, spec.scale, spec.scale);
+				}
+			}
+			this.spriteRight.push(right);
+
+			const left = document.createElement("canvas");
+			left.width = w; left.height = h;
+			const lctx = left.getContext("2d")!;
+			lctx.imageSmoothingEnabled = false;
+			lctx.translate(w, 0);
+			lctx.scale(-1, 1);
+			lctx.drawImage(right, 0, 0);
+			this.spriteLeft.push(left);
+		}
+	}
+
+	resize() {
+		if (!this.canvas) return;
+		const rect = this.canvas.getBoundingClientRect();
+		this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+		this.w = Math.max(1, Math.floor(rect.width));
+		this.h = Math.max(1, Math.floor(rect.height));
+		this.canvas.width = Math.floor(this.w * this.dpr);
+		this.canvas.height = Math.floor(this.h * this.dpr);
+		if (this.ctx) {
+			this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+			this.ctx.imageSmoothingEnabled = false;
+		}
+	}
+
+	seed() {
+		const target = Math.max(6, Math.min(30, Math.round(this.w / 80)));
+		this.boids = [];
+		for (let i = 0; i < target; i++) {
+			// Bias initial heading toward horizontal: pick a shallow tilt then
+			// flip left/right, so no fish starts pointing straight up or down.
+			const tilt = (Math.random() - 0.5) * (Math.PI / 3); // ±30°
+			const angle = tilt + (Math.random() < 0.5 ? 0 : Math.PI);
+			const baseSpeed = 16 + Math.random() * 40; // wide range: slow to fast
+			const speed = baseSpeed * (0.6 + Math.random() * 0.6);
+			this.boids.push({
+				x: Math.random() * this.w,
+				y: 10 + Math.random() * Math.max(1, this.h - 20),
+				vx: Math.cos(angle) * speed,
+				vy: Math.sin(angle) * speed,
+				sp: Math.floor(Math.random() * SPRITES.length),
+				baseSpeed,
+				mood: 0.7 + Math.random() * 0.6,
+				moodT: Math.random() * 3,
+				turnT: Math.random() * 2,
+			});
+		}
+	}
+
+	start() {
+		if (this.rafId) return;
+		this.last = performance.now();
+		const loop = (t: number) => {
+			const dt = Math.min(0.05, (t - this.last) / 1000);
+			this.last = t;
+			this.step(dt);
+			this.draw();
+			this.rafId = requestAnimationFrame(loop);
+		};
+		this.rafId = requestAnimationFrame(loop);
+	}
+
+	stop() {
+		if (this.rafId) cancelAnimationFrame(this.rafId);
+		this.rafId = 0;
+	}
+
+	step(dt: number) {
+		const PERCEPTION = 60;
+		const SEP_DIST = 26;
+		const MAX_SPEED_CAP = 80;
+		const MIN_SPEED_FLOOR = 6;
+		const ALIGN_W = 0.35;
+		const COH_W = 0.5;
+		const SEP_W = 3.0;
+		const EDGE_MARGIN = 14;
+		const EDGE_W = 40;
+
+		const n = this.boids.length;
+		const nx = new Float32Array(n);
+		const ny = new Float32Array(n);
+
+		for (let i = 0; i < n; i++) {
+			const b = this.boids[i];
+			let ax = 0, ay = 0;
+			let alx = 0, aly = 0;
+			let cx = 0, cy = 0;
+			let sx = 0, sy = 0;
+			let count = 0;
+			let sepCount = 0;
+
+			for (let j = 0; j < n; j++) {
+				if (i === j) continue;
+				const o = this.boids[j];
+				const dx = o.x - b.x;
+				const dy = o.y - b.y;
+				const d2 = dx * dx + dy * dy;
+				if (d2 > PERCEPTION * PERCEPTION) continue;
+				alx += o.vx; aly += o.vy;
+				cx += o.x; cy += o.y;
+				count++;
+				if (d2 < SEP_DIST * SEP_DIST && d2 > 0.0001) {
+					const d = Math.sqrt(d2);
+					sx -= dx / d;
+					sy -= dy / d;
+					sepCount++;
+				}
+			}
+
+			if (count > 0) {
+				alx /= count; aly /= count;
+				ax += (alx - b.vx) * ALIGN_W;
+				ay += (aly - b.vy) * ALIGN_W;
+
+				cx /= count; cy /= count;
+				ax += (cx - b.x) * 0.02 * COH_W;
+				ay += (cy - b.y) * 0.02 * COH_W;
+			}
+			if (sepCount > 0) {
+				ax += sx * SEP_W * 30;
+				ay += sy * SEP_W * 30;
+			}
+
+			// Four soft walls: push boid back inside on all edges.
+			if (b.y < EDGE_MARGIN) ay += (EDGE_MARGIN - b.y) * EDGE_W * 0.05;
+			else if (b.y > this.h - EDGE_MARGIN)
+				ay -= (b.y - (this.h - EDGE_MARGIN)) * EDGE_W * 0.05;
+			if (b.x < EDGE_MARGIN) ax += (EDGE_MARGIN - b.x) * EDGE_W * 0.05;
+			else if (b.x > this.w - EDGE_MARGIN)
+				ax -= (b.x - (this.w - EDGE_MARGIN)) * EDGE_W * 0.05;
+
+			// Wander noise — horizontal gets more, vertical less, so headings
+			// prefer shallow angles over straight up/down.
+			ax += (Math.random() - 0.5) * 26;
+			ay += (Math.random() - 0.5) * 10;
+
+			// Spontaneous turn: kick heading by a shallow angle so a fish
+			// breaks off without ever going vertical.
+			b.turnT -= dt;
+			if (b.turnT <= 0) {
+				const cur = Math.atan2(b.vy, b.vx);
+				const delta = (Math.random() - 0.5) * (Math.PI / 3); // ±30°
+				const spd = Math.hypot(b.vx, b.vy);
+				let nvx = Math.cos(cur + delta) * spd;
+				let nvy = Math.sin(cur + delta) * spd;
+				// If the new heading is too steep, reflect vy so it stays shallow.
+				if (Math.abs(nvy) > Math.abs(nvx) * 0.6) nvy *= 0.4;
+				b.vx = nvx;
+				b.vy = nvy;
+				b.turnT = 1.2 + Math.random() * 2.5;
+			}
+
+			// Soft dampen on vertical velocity so straight-up/down drifts away.
+			b.vy *= 0.985;
+
+			// Mood drift: each fish independently speeds up / slows down.
+			b.moodT -= dt;
+			if (b.moodT <= 0) {
+				b.mood = 0.5 + Math.random() * 1.1; // 0.5x .. 1.6x
+				b.moodT = 1.5 + Math.random() * 3.5;
+			}
+
+			let vx = b.vx + ax * dt;
+			let vy = b.vy + ay * dt;
+
+			// Prefer horizontal motion: dampen vertical velocity a touch, and
+			// nudge whichever horizontal side the fish already leans toward.
+			vy *= 0.985;
+			vx += (vx >= 0 ? 6 : -6) * dt;
+
+			// Clamp against a per-fish target speed range instead of a global one,
+			// so the school naturally has slow drifters and fast darters.
+			const target = b.baseSpeed * b.mood;
+			const maxS = Math.min(MAX_SPEED_CAP, target + 6);
+			const minS = Math.max(MIN_SPEED_FLOOR, target - 6);
+			const speed = Math.hypot(vx, vy);
+			if (speed > maxS) {
+				vx = (vx / speed) * maxS;
+				vy = (vy / speed) * maxS;
+			} else if (speed < minS) {
+				if (speed < 0.01) {
+					const a = Math.random() * Math.PI * 2;
+					vx = Math.cos(a) * minS;
+					vy = Math.sin(a) * minS;
+				} else {
+					vx = (vx / speed) * minS;
+					vy = (vy / speed) * minS;
+				}
+			}
+
+			this.boids[i].vx = vx;
+			this.boids[i].vy = vy;
+			nx[i] = b.x + vx * dt;
+			ny[i] = b.y + vy * dt;
+		}
+
+		// Clamp inside the strip on all four sides.
+		for (let i = 0; i < n; i++) {
+			let x = nx[i];
+			let y = ny[i];
+			if (x < 2) { x = 2; if (this.boids[i].vx < 0) this.boids[i].vx = -this.boids[i].vx; }
+			else if (x > this.w - 2) { x = this.w - 2; if (this.boids[i].vx > 0) this.boids[i].vx = -this.boids[i].vx; }
+			if (y < 2) { y = 2; if (this.boids[i].vy < 0) this.boids[i].vy = -this.boids[i].vy; }
+			else if (y > this.h - 2) { y = this.h - 2; if (this.boids[i].vy > 0) this.boids[i].vy = -this.boids[i].vy; }
+			this.boids[i].x = x;
+			this.boids[i].y = y;
+		}
+	}
+
+	draw() {
+		const ctx = this.ctx;
+		if (!ctx) return;
+		ctx.clearRect(0, 0, this.w, this.h);
+
+		for (const b of this.boids) {
+			const w = this.spriteW[b.sp];
+			const h = this.spriteH[b.sp];
+			const angle = Math.atan2(b.vy, b.vx);
+			ctx.save();
+			ctx.translate(b.x, b.y);
+			ctx.rotate(angle);
+			// Sprites are vertically symmetric, so mirror on Y when heading left
+			// to keep the eye upright.
+			if (Math.cos(angle) < 0) ctx.scale(1, -1);
+			ctx.drawImage(this.spriteRight[b.sp], -w / 2, -h / 2);
+			ctx.restore();
+		}
+	}
+}
+
+if (!customElements.get("fish-strip")) {
+	customElements.define("fish-strip", FishStrip);
+}
+</script>
