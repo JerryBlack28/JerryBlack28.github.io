@@ -3,9 +3,10 @@
 // and loosely school along the horizontal axis. Rendered on a canvas placed
 // at the bottom of the page.
 ---
-<fish-strip class="block w-full mt-4">
+<fish-strip class="block w-full">
 	<div class="relative w-full h-[96px] overflow-hidden
-		bg-[oklch(96%_0.015_var(--hue))] dark:bg-[oklch(20%_0.02_var(--hue))]
+		border-t border-[oklch(86%_0.035_var(--hue))] dark:border-[oklch(32%_0.03_var(--hue))]
+		bg-[oklch(93%_0.025_var(--hue))] dark:bg-[oklch(20%_0.02_var(--hue))]
 		transition">
 		<canvas class="block w-full h-full" aria-hidden="true"></canvas>
 	</div>
@@ -91,8 +92,10 @@ class FishStrip extends HTMLElement {
 	h = 0;
 	visible = false;
 	docVisible = true;
+	reducedMotion = false;
 	io: IntersectionObserver | null = null;
 	ro: ResizeObserver | null = null;
+	motionQuery: MediaQueryList | null = null;
 
 	connectedCallback() {
 		this.canvas = this.querySelector("canvas");
@@ -104,10 +107,16 @@ class FishStrip extends HTMLElement {
 		this.buildSprites();
 		this.resize();
 		this.seed();
+		this.draw();
+
+		this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+		this.reducedMotion = this.motionQuery.matches;
+		this.motionQuery.addEventListener("change", this.onMotionPreference);
 
 		this.ro = new ResizeObserver(() => {
 			this.resize();
 			this.seed();
+			if (this.reducedMotion) this.draw();
 		});
 		this.ro.observe(this.canvas);
 
@@ -125,6 +134,7 @@ class FishStrip extends HTMLElement {
 		this.stop();
 		this.io?.disconnect();
 		this.ro?.disconnect();
+		this.motionQuery?.removeEventListener("change", this.onMotionPreference);
 		document.removeEventListener("visibilitychange", this.onDocVisibility);
 	}
 
@@ -133,7 +143,17 @@ class FishStrip extends HTMLElement {
 		this.syncRunning();
 	};
 
+	onMotionPreference = (event: MediaQueryListEvent) => {
+		this.reducedMotion = event.matches;
+		this.syncRunning();
+	};
+
 	syncRunning() {
+		if (this.reducedMotion) {
+			this.stop();
+			this.draw();
+			return;
+		}
 		if (this.visible && this.docVisible) this.start();
 		else this.stop();
 	}
@@ -219,7 +239,7 @@ class FishStrip extends HTMLElement {
 	}
 
 	start() {
-		if (this.rafId) return;
+		if (this.rafId || this.reducedMotion) return;
 		this.last = performance.now();
 		const loop = (t: number) => {
 			const dt = Math.min(0.05, (t - this.last) / 1000);
