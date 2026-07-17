@@ -1,6 +1,6 @@
 ---
 title: diss_quack and Array Game (CF 2246 D)
-published: 2026-7-18
+published: 2026-07-18
 description: 博弈 + 位运算枚举，通过枚举全体除二的次数来计算最少步数。
 tags: [算法, 博弈, 位运算, 枚举]
 category: 算法

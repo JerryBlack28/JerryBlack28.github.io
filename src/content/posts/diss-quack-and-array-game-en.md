@@ -1,6 +1,6 @@
 ---
 title: diss_quack and Array Game (CF 2246 D)
-published: 2026-7-18
+published: 2026-07-18
 description: Game theory + bitwise enumeration — enumerate how many global halving operations are performed to compute the minimum step count.
 tags: [Algorithms, Game Theory, Bit Manipulation, Enumeration]
 category: Algorithms
