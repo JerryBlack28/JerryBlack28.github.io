@@ -32,7 +32,7 @@ function mergeFontStyle(existing, add) {
 
 // https://astro.build/config
 export default defineConfig({
-	site: "https://JerryBlack28.github.io/",
+	site: "https://jerryblack.vercel.app/",
 	base: "/",
 	trailingSlash: "always",
 	integrations: [
