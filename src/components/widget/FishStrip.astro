@@ -8,7 +8,7 @@
 		border-t border-[oklch(86%_0.035_var(--hue))] dark:border-[oklch(32%_0.03_var(--hue))]
 		bg-[oklch(93%_0.025_var(--hue))] dark:bg-[oklch(20%_0.02_var(--hue))]
 		transition">
-		<canvas class="block w-full h-full" aria-hidden="true"></canvas>
+		<canvas class="block w-full h-full touch-pan-y" aria-hidden="true"></canvas>
 	</div>
 </fish-strip>
 
@@ -24,44 +24,42 @@ type SpriteSpec = {
 // Right-facing pixel fish. Each string is one row (left→right = tail→head).
 const SPRITES: SpriteSpec[] = [
 	{
-		// classic goldfish
-		palette: [null, "#f59e42", "#c2410c", "#fde68a", "#1f2937", "#ffffff"],
-		pattern: [
-			"  22       ",
-			" 2211 1111 ",
-			"22111111115",
-			" 2211111145",
-			"22111111115",
-			" 2211 1111 ",
-			"  22       ",
-		],
-		scale: 2,
-	},
-	{
-		// blue tang
-		palette: [null, "#3b82f6", "#1e3a8a", "#fbbf24", "#0f172a", "#ffffff"],
-		pattern: [
-			"  22       ",
-			" 2211 1111 ",
-			"221111111 5",
-			" 22111111 5",
-			"221111111 5",
-			" 2211 1111 ",
-			"  22       ",
-		],
-		scale: 2,
-	},
-	{
-		// coral
+		// small coral fish
 		palette: [null, "#fb7185", "#9f1239", "#fecdd3", "#111827", "#ffffff"],
 		pattern: [
-			"  22       ",
-			" 2211 3333 ",
-			"22133333315",
-			" 2213333345",
-			"22133333315",
-			" 2211 3333 ",
-			"  22       ",
+			" 22      ",
+			"2211111  ",
+			" 2111145 ",
+			"2211111  ",
+			" 22      ",
+		],
+		scale: 2,
+	},
+	{
+		// slender blue fish
+		palette: [null, "#3b82f6", "#1e3a8a", "#fbbf24", "#0f172a", "#ffffff"],
+		pattern: [
+			"   22          ",
+			"  22211111111  ",
+			"222211111111145",
+			"  22211111111  ",
+			"   22          ",
+		],
+		scale: 2,
+	},
+	{
+		// broad goldfish
+		palette: [null, "#f59e42", "#c2410c", "#fde68a", "#1f2937", "#ffffff"],
+		pattern: [
+			"    22         ",
+			"   222  111    ",
+			"  22211111111  ",
+			" 2221111111115 ",
+			"222211111111145",
+			" 2221111111115 ",
+			"  22211111111  ",
+			"   222  111    ",
+			"    22         ",
 		],
 		scale: 2,
 	},
@@ -90,6 +88,10 @@ class FishStrip extends HTMLElement {
 	dpr = 1;
 	w = 0;
 	h = 0;
+	pointerX = 0;
+	pointerY = 0;
+	pointerActive = false;
+	scatterUntil = 0;
 	visible = false;
 	docVisible = true;
 	reducedMotion = false;
@@ -112,6 +114,11 @@ class FishStrip extends HTMLElement {
 		this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 		this.reducedMotion = this.motionQuery.matches;
 		this.motionQuery.addEventListener("change", this.onMotionPreference);
+		this.canvas.addEventListener("pointermove", this.onPointerMove);
+		this.canvas.addEventListener("pointerleave", this.onPointerLeave);
+		this.canvas.addEventListener("pointerdown", this.onPointerDown);
+		this.canvas.addEventListener("pointerup", this.onPointerEnd);
+		this.canvas.addEventListener("pointercancel", this.onPointerEnd);
 
 		this.ro = new ResizeObserver(() => {
 			this.resize();
@@ -135,6 +142,11 @@ class FishStrip extends HTMLElement {
 		this.io?.disconnect();
 		this.ro?.disconnect();
 		this.motionQuery?.removeEventListener("change", this.onMotionPreference);
+		this.canvas?.removeEventListener("pointermove", this.onPointerMove);
+		this.canvas?.removeEventListener("pointerleave", this.onPointerLeave);
+		this.canvas?.removeEventListener("pointerdown", this.onPointerDown);
+		this.canvas?.removeEventListener("pointerup", this.onPointerEnd);
+		this.canvas?.removeEventListener("pointercancel", this.onPointerEnd);
 		document.removeEventListener("visibilitychange", this.onDocVisibility);
 	}
 
@@ -146,6 +158,32 @@ class FishStrip extends HTMLElement {
 	onMotionPreference = (event: MediaQueryListEvent) => {
 		this.reducedMotion = event.matches;
 		this.syncRunning();
+	};
+
+	updatePointer(event: PointerEvent) {
+		if (!this.canvas) return;
+		const rect = this.canvas.getBoundingClientRect();
+		this.pointerX = (event.clientX - rect.left) * (this.w / rect.width);
+		this.pointerY = (event.clientY - rect.top) * (this.h / rect.height);
+	}
+
+	onPointerMove = (event: PointerEvent) => {
+		this.updatePointer(event);
+		this.pointerActive = true;
+	};
+
+	onPointerLeave = () => {
+		this.pointerActive = false;
+	};
+
+	onPointerDown = (event: PointerEvent) => {
+		this.updatePointer(event);
+		this.pointerActive = true;
+		this.scatterUntil = performance.now() + 550;
+	};
+
+	onPointerEnd = (event: PointerEvent) => {
+		if (event.pointerType !== "mouse") this.pointerActive = false;
 	};
 
 	syncRunning() {
@@ -266,6 +304,10 @@ class FishStrip extends HTMLElement {
 		const SEP_W = 3.0;
 		const EDGE_MARGIN = 14;
 		const EDGE_W = 40;
+		const HOVER_RADIUS = 72;
+		const SCATTER_RADIUS = 150;
+		const scatter = Math.max(0, (this.scatterUntil - performance.now()) / 550);
+		const hasPointerInfluence = this.pointerActive || scatter > 0;
 
 		const n = this.boids.length;
 		const nx = new Float32Array(n);
@@ -279,6 +321,7 @@ class FishStrip extends HTMLElement {
 			let sx = 0, sy = 0;
 			let count = 0;
 			let sepCount = 0;
+			let escapeBoost = 0;
 
 			for (let j = 0; j < n; j++) {
 				if (i === j) continue;
@@ -310,6 +353,26 @@ class FishStrip extends HTMLElement {
 			if (sepCount > 0) {
 				ax += sx * SEP_W * 30;
 				ay += sy * SEP_W * 30;
+			}
+
+			if (hasPointerInfluence) {
+				let dx = b.x - this.pointerX;
+				let dy = b.y - this.pointerY;
+				let distance = Math.hypot(dx, dy);
+				const radius = scatter > 0 ? SCATTER_RADIUS : HOVER_RADIUS;
+				if (distance < radius) {
+					if (distance < 0.01) {
+						const angle = (i / Math.max(1, n)) * Math.PI * 2;
+						dx = Math.cos(angle);
+						dy = Math.sin(angle);
+						distance = 1;
+					}
+					const falloff = 1 - distance / radius;
+					const force = (95 + scatter * 430) * falloff;
+					ax += (dx / distance) * force;
+					ay += (dy / distance) * force;
+					escapeBoost = scatter * falloff;
+				}
 			}
 
 			// Four soft walls: push boid back inside on all edges.
@@ -362,7 +425,10 @@ class FishStrip extends HTMLElement {
 			// Clamp against a per-fish target speed range instead of a global one,
 			// so the school naturally has slow drifters and fast darters.
 			const target = b.baseSpeed * b.mood;
-			const maxS = Math.min(MAX_SPEED_CAP, target + 6);
+			const maxS = Math.min(
+				MAX_SPEED_CAP + escapeBoost * 30,
+				target + 6 + escapeBoost * 40,
+			);
 			const minS = Math.max(MIN_SPEED_FLOOR, target - 6);
 			const speed = Math.hypot(vx, vy);
 			if (speed > maxS) {
