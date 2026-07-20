@@ -1,4 +1,36 @@
 .custom-md {
+	/* Newspaper/paper-style body copy: fill both edges while keeping the
+	   final line natural. The document lang attribute enables dictionary
+	   hyphenation for English posts. */
+	&.markdown-content :where(p, li) {
+		text-align: justify;
+		text-align-last: start;
+		hyphens: auto;
+		-webkit-hyphens: auto;
+		hyphenate-limit-chars: 6 3 3;
+		word-break: normal;
+		overflow-wrap: break-word;
+	}
+
+	/* CJK text distributes space between characters; English text follows
+	   traditional inter-word justification. */
+	&.markdown-content[lang^="zh"] :where(p, li) {
+		text-justify: inter-character;
+	}
+
+	&.markdown-content[lang="en"] :where(p, li) {
+		text-justify: inter-word;
+	}
+
+	/* Technical and compact content should retain its original alignment. */
+	&.markdown-content :where(table p, figcaption, summary, pre, code, kbd, samp, .katex, .expressive-code *) {
+		text-align: start;
+		text-align-last: auto;
+		hyphens: none;
+		-webkit-hyphens: none;
+		overflow-wrap: normal;
+	}
+
     h1 {
         @apply text-3xl;
     }
